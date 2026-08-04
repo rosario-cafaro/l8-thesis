@@ -1,0 +1,69 @@
+% !TEX program = xelatex
+\documentclass[12pt,a4paper,twoside]{report}
+
+% --- VARIABILI ---
+\input{.env.tex}
+
+% --- GEOMETRIA DELLA PAGINA ---
+\usepackage{geometry}
+\geometry{
+    a4paper,
+    top=3cm,
+    bottom=3cm,
+    left=3cm,     % Margine interno per fronte-retro
+    right=3cm,    % Margine esterno per fronte-retro
+    bindingoffset=0.5cm % Opzionale: aggiunge spazio extra interno per la rilegatura
+}
+
+% --- INTERLINEA ---
+\usepackage{setspace}
+\onehalfspacing % Imposta l'interlinea a 1,5
+
+% --- FONT (Richiede compilazione con XeLaTeX o LuaLaTeX) ---
+\usepackage{fontspec}
+\setmainfont{Arial} % "Times New Roman", "Arial", "Calibri" o "Tahoma"
+
+% --- LINGUA E GIUSTIFICAZIONE ---
+\usepackage[italian]{babel}
+\usepackage{microtype} % Migliora la giustificazione automatica del testo
+
+
+% --- PACCHETTI ---
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{titling}
+\usepackage{braket}
+\usepackage{listings}
+
+
+\begin{document}
+
+\input{1_frontespizio}
+
+\pagenumbering{roman}
+
+\input{2_autorizzazione_consultazione}
+
+\tableofcontents
+\clearpage
+
+\input{3_introduzione}
+
+\pagenumbering{arabic}
+
+\input{4_fondamenti_ml_classificazione_classica}
+\input{5_quantum_machine_learning}
+\input{6_architettura_sistema_metodologia}
+\input{7_implementazione_sperimentale_risultati}
+\input{8_conclusioni}
+\input{9_bibliografia}
+\input{10_ringraziamenti}
+
+\end{document}
