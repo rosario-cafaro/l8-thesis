@@ -1,3 +1,381 @@
 \chapter{Fondamenti di Machine Learning e Classificazione Classica}
 \label{cap:fondamenti_ml_classificazione_classica}
 
+Il Machine Learning (ML) rappresenta una branca fondamentale dell'Intelligenza Artificiale (AI), incentrata sullo sviluppo di algoritmi capaci di identificare autonomamente pattern complessi e regolarità all'interno dei dati. A differenza della programmazione imperativa tradizionale, in cui le regole logiche vengono esplicitamente codificate, il paradigma del ML apprende tali regole mediante un processo di ottimizzazione guidato dall'esperienza empirica\footnote{Mitchell, T. M. (1997). \textit{Machine Learning}. McGraw-Hill, New York.}.
+
+Questo capitolo stabilisce il quadro teorico, matematico e metodologico del Machine Learning e della classificazione classica, con l'obiettivo di definire le basi prestazionali necessarie per il successivo confronto con i modelli di Quantum Machine Learning (QML). Nello specifico, verranno formalizzati i paradigmi di apprendimento, la formulazione matematica del problema di classificazione, le fasi di pre-processing fondamentali per il trattamento di dataset reali, i modelli di classificazione di riferimento (Logistic Regression, Support Vector Machines e Random Forest) e il rigoroso impianto metrico per la loro valutazione. \\
+
+% \clearpage
+
+\section{Paradigmi di Apprendimento}
+
+L'apprendimento automatico si articola in tre paradigmi fondamentali, definiti dalla natura del feedback ricevuto nella fase di training (apprendimento supervisionato, non supervisionato e per rinforzo).
+
+\subsection{Apprendimento Supervisionato}
+Nell'apprendimento supervisionato il modello viene addestrato utilizzando un dataset di addestramento con etichette. Ogni istanza nel dataset è composta da una coppia di input e da un'etichetta di riferimento corrispondente, nota come \textit{ground truth} ($x_i, y_i$). L'obiettivo principale dell'algoritmo è apprendere una funzione di mappatura $h: \mathcal{X} \to \mathcal{Y}$ capace di generalizzare correttamente su dati non visti in fase di training, minimizzando una funzione di perdita (\textit{loss function}) che quantifica l'errore commesso nelle previsioni.
+
+Questo approccio trova principale applicazione in due macro-categorie di problemi:
+\begin{itemize}
+    \item \textbf{Classificazione:} L'obiettivo è assegnare l'input $x$ a una categoria appartenente a un insieme discreto e finito di classi (es. riconoscimento di immagini, filtrazione di email spam). La variabile target $y$ assume valori in un insieme di etichette categoriali.
+    \item \textbf{Regressione:} L'obiettivo è predire un valore continuo appartenente all'insieme dei numeri reali $y \in \mathbb{R}$ (es. previsione del prezzo di un immobile). La bontà del modello viene comunemente valutata tramite metriche come l'errore quadratico medio (\textit{Mean Squared Error}, MSE):
+    \begin{equation}
+        \text{MSE} = \frac{1}{n}\sum_{i=1}^n (y_i - \hat{y}_i)^2,
+    \end{equation}
+    dove $y_i$ è il valore reale e $\hat{y}_i$ è il valore predetto dal modello per l'$i-esimo$ campione.
+\end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{assets/classification_vs_regression.png}
+    \caption{\footnotesize Rappresentazione schematica del flusso di lavoro dell'Apprendimento Supervisionato, suddiviso nei compiti di Classificazione (output categoriale) e Regressione (output numerico continuo).}
+    \label{fig:apprendimento_supervisionato}
+\end{figure}
+
+\subsection{Apprendimento Non Supervisionato}
+Nell'apprendimento non supervisionato il modello opera su dati privi di annotazioni, etichette o risposte target esplicite. Il dataset comprende esclusivamente i vettori di ingresso:
+\begin{equation}
+    \mathcal{D} = \{\mathbf{x}_i\}_{i=1}^n, \quad \mathbf{x}_i \in \mathbb{R}^d.
+\end{equation}
+L'algoritmo non riceve una guida esterna (\textit{ground truth}) e mira autonomamente a identificare strutture latenti, densità di probabilità, regolarità geometriche o raggruppamenti naturali intrinseci ai dati stessi. Questo approccio è fondamentale per l'esplorazione iniziale dei dati, il rilevamento delle anomalie e la compressione delle informazioni.
+
+Le metodologie chiave si articolano principalmente in due aree:
+
+\begin{itemize}
+    \item \textbf{Clustering:} Consiste nel partizionamento dello spazio dei tratti in cluster omogenei, in modo tale che gli elementi appartenenti allo stesso gruppo siano altamente simili tra loro (\textit{alta coesione interna}) e significativamente dissimili da quelli di altri gruppi (\textit{alta separazione esterna}).
+    Algoritmi come il $K$-Means operano minimizzando iterativamente la sommatoria delle distanze quadratiche all'interno dei cluster (\textit{inerzia}):
+    \begin{equation}
+        J = \sum_{j=1}^{K} \sum_{\mathbf{x}_i \in S_j} \|\mathbf{x}_i - \boldsymbol{\mu}_j\|^2,
+    \end{equation}
+    dove $S_j$ rappresenta il sottoinsieme di punti assegnati al cluster $j-esimo$ e $\boldsymbol{\mu}_j$ è il centroide associato. Altri approcci rilevanti includono DBSCAN, basato sulla densità e in grado di scoprire cluster di forma arbitraria, e il clustering gerarchico.
+
+    \item \textbf{Riduzione della Dimensionalità:} Si occupa della proiezione dei dati da uno spazio ad alta dimensionalità $d$ a uno spazio a bassa dimensionalità $k$ (con $k \ll d$). Questa tecnica permette di mitigare la "maledizione della dimensionalità" (\textit{curse of dimensionality}), visualizzare dati complessi e ottimizzare le risorse computazionali preservando proprietà fondamentali del dataset.
+    Tra i metodi lineari spicca l'Analisi delle Componenti Principali (\textit{PCA}), che massimizza la varianza trattenuta lungo i nuovi assi ortogonali. Per la visualizzazione non lineare di strutture complesse e varietà geometriche (\textit{manifolds}), si utilizzano tecniche avanzate quali t-SNE e UMAP, che preservano le distanze topologiche locali e globali.
+\end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{assets/clustering_vs_dimensionality_reduction.png}
+    \caption{\footnotesize Illustrazione dei compiti principali dell'Apprendimento Non Supervisionato: raggruppamento di dati simili in sottoinsiemi distinti (Clustering) e compressione geometrica dello spazio dei tratti (Riduzione della Dimensionalità).}
+    \label{fig:apprendimento_non_supervisionato}
+\end{figure}
+
+\subsection{Apprendimento per Rinforzo}
+L'Apprendimento per Rinforzo (\textit{Reinforcement Learning}, RL) si focalizza sull'apprendimento orientato ad un obiettivo. A differenza dei paradigmi supervisionati e non supervisionati, l'agente non impara da un dataset statico, ma apprende attraverso l'esperienza diretta derivante dall'interazione continua tra un agente razionale e un ambiente stocastico, dinamico e inizialmente sconosciuto.
+
+Tale interazione viene formalizzata matematicamente mediante il Processo Decisionale di Markov (\textit{Markov Decision Process}, MDP)\footnote{Sutton, R. S., \& Barto, A. G. (2018). \textit{Reinforcement Learning: An Introduction}. MIT Press.}, definito rigorosamente dalla quintupla ordinata $(\mathcal{S}, \mathcal{A}, P, R, \gamma)$, che descrive l'ambiente e le regole di transizione:
+\begin{itemize}
+    \item $\mathcal{S}$ rappresenta lo spazio degli stati, discreti o continui, che descrivono le possibili configurazioni dell'ambiente osservabili dall'agente.
+    \item $\mathcal{A}$ definisce lo spazio delle azioni consentite all'agente in ciascuno stato.
+    \item $P(s' \mid s, a) = \mathbb{P}(S_{t+1} = s' \mid S_t = s, A_t = a)$ definisce la funzione di transizione di probabilità, ovvero la probabilità di transire allo stato $s'$ partendo dallo stato $s$ dopo aver eseguito l'azione $a$.
+    \item $R(s, a) = \mathbb{E}[R_{t+1} \mid S_t = s, A_t = a]$ indica la funzione di ricompensa attesa immediata che l'agente riceve come feedback dall'ambiente dopo aver eseguito l'azione $a$ nello stato $s$.
+    \item $\gamma \in [0, 1)$ rappresenta il fattore di sconto (\textit{discount factor}), che determina l'importance geometricamente decrescente delle ricompense future rispetto a quelle immediate.
+\end{itemize}
+
+A ogni istante temporale discreto $t$, l'agente percepisce lo stato corrente $s_t \in \mathcal{S}$, seleziona ed esegue un'azione $a_t \in \mathcal{A}$ in base alla propria politica $\pi(a_t \mid s_t)$, transita allo stato successivo $s_{t+1} \sim P(\cdot \mid s_t, a_t)$ e riceve un segnale di feedback numerico immediato $R_{t+1}$.
+
+L'obiettivo finale dell'agente consiste nel determinare una politica ottimale $\pi^*: \mathcal{S} \to \mathcal{A}$ (o $\pi^*(a \mid s)$ nel caso stocastico) in grado di massimizzare il valore atteso del ritorno cumulativo scontato nel lungo periodo, definito come:
+\begin{equation}
+    G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1},
+\end{equation}
+dove il fattore di sconto $\gamma \in [0, 1)$ regola l'importanza relativa delle ricompense immediate rispetto a quelle future, garantendo al contempo la convergenza della serie matematica in scenari a orizzonte infinito.
+
+Per identificare tale politica ottimale, gli algoritmi di RL si basano sulla stima di funzioni di valore. La funzione valore-stato $V^\pi(s)$ e la funzione valore-azione $Q^\pi(s, a)$ misurano la bontà di uno stato o di una coppia stato-azione seguendo una determinata politica. Esse vengono ottimizzate risolvendo l'equazione di ottimalità di Bellman per la funzione valore-azione:
+\begin{equation}
+    Q^*(s, a) = R(s, a) + \gamma \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \max_{a'} Q^*(s', a').
+\end{equation}
+I principali approcci per la risoluzione di questo problema includono metodi basati su tabelle come il \textit{Q-Learning} e il \textit{SARSA}, fino ad arrivare ad algoritmi di \textit{Deep Reinforcement Learning} (es. DQN, PPO) che impiegano reti neurali profonde come approssimatori di funzione per gestire spazi di stato ad altissima dimensionalità.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.60\textwidth]{assets/markov_decision_processes.png}
+    \caption{\footnotesize Diagramma del ciclo di interazione Agente-Ambiente nel processo decisionale di Markov: l'agente esegue un'azione condizionata dallo stato corrente e riceve in risposta dall'ambiente un nuovo stato e una ricompensa scalare.}
+    \label{fig:apprendimento_rinforzo_ciclo}
+\end{figure}
+
+\subsection{Dilemma Bias-Varianza, Overfitting e Underfitting}
+La capacità di un modello di apprendimento di generalizzare su dati non visti è governata dal fondamentale compromesso tra errore di distorsione (\textit{Bias}) ed errore di varianza (\textit{Variance})\footnote{Hastie, T., Tibshirani, R., \& Friedman, J. (2009). \textit{The Elements of Statistical Learning}. Springer.}.
+
+Considerando un problema di regressione con funzione di perdita quadratica, l'errore di generalizzazione atteso per un estimatore $\hat{f}(\mathbf{x})$ si scompone analiticamente nella somma di tre componenti chiave:
+\begin{equation}
+\mathbb{E}\left[(y - \hat{f}(\mathbf{x}))^2\right] = \text{Bias}\left[\hat{f}(\mathbf{x})\right]^2 + \text{Var}\left[\hat{f}(\mathbf{x})\right] + \sigma^2_{\epsilon},
+\end{equation}
+dove $\sigma^2_{\epsilon}$ rappresenta il rumore irriducibile intrinseco alla distribuzione dei dati. Da questo bilanciamento derivano i due principali regimi di fallimento dell'apprendimento:
+
+\begin{itemize}
+    \item \textbf{Underfitting (Alto Bias):} Si manifesta quando il modello possiede una capacità espressiva insufficiente per catturare la complessità strutturale sottostante ai dati. Un esempio classico è l'impiego di un regressore lineare per approssimare relazioni fortemente non lineari, il che si traduce in un errore sistematico elevato sia sul set di training che su quello di test.
+    \item \textbf{Overfitting (Alta Varianza):} Si verifica quando la complessità del modello è eccessiva rispetto alla numerosità o alla qualità del dataset. In questo scenario, il modello finisce per apprendere e memorizzare il rumore specifico del set di addestramento anziché il pattern generale, compromettendo drasticamente le performance di generalizzazione.
+\end{itemize}
+
+Nel contesto del Machine Learning Quantistico, la gestione di questo trade-off assume peculiarità rilevanti: i circuiti quantistici parametrizzati (PQC) possono mostrare uno spazio delle ipotesi estremamente ampio ma, al contempo, rischiare fenomeni di overfitting accelerato o problemi di ottimizzazione legati alla geometria dello spazio degli stati (come il fenomeno dei \textit{barren plateaus})\footnote{Cerezo, M., et al. (2021). Cost function dependent barren plateaus in shallow quantum neural networks. \textit{Nature Communications}, 12(1), 1791.}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.65\textwidth]{assets/bias_variance_tradeoff.png}
+    \caption{\footnotesize Decomposizione Bias-Varianza ed evoluzione dell'errore al variare della complessità del modello. La curva dell'errore totale mostra il tipico andamento a U, identificando il punto di ottimo (\textit{sweet spot}) tra l'underfitting (alto bias) e l'overfitting (alta varianza).}
+    \label{fig:bias_variance_tradeoff}
+\end{figure}
+
+\section{Formulazione Matematica della Classificazione Supervisionata}
+
+Focalizzando l'attenzione sul paradigma dell'apprendimento supervisionato, in questa sezione si formalizza rigorosamente il problema della classificazione binaria e multiclasse. La classificazione supervisionata consiste nell'apprendere una funzione di mappatura tra uno spazio di input ad alta dimensione e un insieme discreto di etichette.
+
+Sia $\mathcal{X} \subseteq \mathbb{R}^d$ lo spazio dei tratti (\textit{feature space}) di dimensione $d$, e sia $\mathcal{Y}$ lo spazio discreto delle etichette di classe. Nel contesto della classificazione binaria si pone $\mathcal{Y} = \{-1, +1\}$ oppure $\mathcal{Y} = \{0, 1\}$, mentre nella classificazione multiclasse con $K$ categorie si ha $\mathcal{Y} = \{1, 2, \dots, K\}$.
+
+Un dataset di addestramento $\mathcal{D}$ è composto da $n$ coppie ordinate indipendenti e identicamente distribuite (i.i.d.) estratte da una distribuzione di probabilità congiunta sconosciuta $\mathcal{P}(\mathbf{X}, Y)$ su $\mathcal{X} \times \mathcal{Y}$:
+\begin{equation}
+\mathcal{D} = \{(\mathbf{x}_1, y_1), (\mathbf{x}_2, y_2), \dots, (\mathbf{x}_n, y_n)\} \subset \mathcal{X} \times \mathcal{Y}.
+\end{equation}
+
+L'obiettivo primario dell'algoritmo di apprendimento è determinare un'ipotesi $f: \mathcal{X} \to \mathcal{Y}$, appartenente a una specifica famiglia funzionale $\mathcal{H}$ (\textit{hypothesis space}), che minimizzi il \textit{Rischio Reale} (o errore di generalizzazione) $\mathcal{R}(f)$:
+\begin{equation}
+\mathcal{R}(f) = \mathbb{E}_{(\mathbf{x}, y) \sim \mathcal{P}} [L(f(\mathbf{x}), y)] = \int_{\mathcal{X} \times \mathcal{Y}} L(f(\mathbf{x}), y) \, d\mathcal{P}(\mathbf{x}, y),
+\end{equation}
+dove $L: \mathcal{Y} \times \mathcal{Y} \to \mathbb{R}_{\geq 0}$ rappresenta la funzione di perdita (\textit{loss function}) che quantifica il costo associato a una predizione errata.
+
+Poiché la distribuzione $\mathcal{P}(\mathbf{X}, Y)$ è ignota, il rischio reale non può essere calcolato direttamente. Si applica pertanto il principio della \textit{Minimizzazione del Rischio Empirico} (Empirical Risk Minimization, ERM)\footnote{Vapnik, V. N. (1998). \textit{Statistical Learning Theory}. Wiley, New York.}, approssimando $\mathcal{R}(f)$ mediante il rischio empirico $\mathcal{R}_{\text{emp}}(f)$:
+\begin{equation}
+\mathcal{R}_{\text{emp}}(f) = \frac{1}{n} \sum_{i=1}^{n} L(f(\mathbf{x}_i), y_i).
+\end{equation}
+
+Per prevenire il fenomeno dell'overfitting e garantire capacità di generalizzazione su campioni non visti, la funzione obiettivo viene modificata integrando un termine di regolarizzazione $\Omega(f)$ che penalizza la complessità del modello (\textit{Structural Risk Minimization}, SRM):
+\begin{equation}
+\mathcal{L}(f) = \frac{1}{n} \sum_{i=1}^{n} L(f(\mathbf{x}_i), y_i) + \lambda \Omega(f),
+\end{equation}
+dove $\lambda > 0$ è un iperparametro di bilanciamento che controlla il compromesso tra aderenza ai dati di training e regolarizzazione.
+
+\subsection{Funzioni di Perdita Principali}
+A seconda della natura dell'algoritmo di classificazione e del modello adottato, vengono impiegate differenti funzioni di perdita:
+\begin{itemize}
+    \item \textbf{Zero-One Loss} (ideale per l'errore di classificazione, ma non convessa e non derivabile):
+    \begin{equation}
+    L_{0/1}(\hat{y}, y) = \mathbb{I}(\hat{y} \neq y).
+    \end{equation}
+    \item \textbf{Hinge Loss} (utilizzata tipicamente nelle Support Vector Machines per massimizzare il margine):
+    \begin{equation}
+    L_{\text{hinge}}(f(\mathbf{x}), y) = \max(0, 1 - y \cdot f(\mathbf{x})) \quad \text{con } y \in \{-1, +1\}.
+    \end{equation}
+    \item \textbf{Logarithmic Loss / Binary Cross-Entropy} (impiegata nella Regressione Logistica e in reti neurali binarie):
+    \begin{equation}
+    L_{\text{log}}(\hat{p}, y) = - \left[ y \log(\hat{p}) + (1 - y) \log(1 - \hat{p}) \right],
+    \end{equation}
+    dove $\hat{p} = P(Y=1 | \mathbf{X}=\mathbf{x})$ rappresenta la probabilità stimata dal modello.
+    \item \textbf{Categorical Cross-Entropy} (estensione per la classificazione multiclasse a $K$ categorie):
+    \begin{equation}
+    L_{\text{ce}} = -\sum_{k=1}^{K} y_k \log(\hat{y}_k),
+    \end{equation}
+    dove $\mathbf{y}$ è la rappresentazione in formato \textit{one-hot} dell'etichetta vera e $\hat{y}_k$ è la probabilità stimata per la classe $k$-esima.
+\end{itemize}
+
+\section{Preprocessing dei Dati per Dataset Reali}
+I dataset del mondo reale presentano intrinsecamente problematiche di rumore, disomogeneità di scala e alta dimensionalità. La fase di preparazione è cruciale sia per la stabilizzazione della convergenza nei modelli classici, sia per consentire una corretta codifica dei dati all'interno dei registri quantistici.
+
+\subsection{Normalizzazione e Feature Scaling}
+Gli algoritmi basati sul calcolo delle distanze (es. SVM, $k$-NN) o sull'ottimizzazione basata su gradiente (es. Regressione Logistica) risentono fortemente della disomogeneità di scala delle variabili. Di conseguenza, la scelta del metodo di scaling assume un ruolo chiave: una trasformazione inappropriata può infatti compromettere l'efficienza e la stabilità dei modelli, risultando inoltre in una codifica distorta o inefficiente nel caso dei modelli quantistici.
+
+\begin{itemize}
+    \item \textbf{Standardizzazione (Z-score Scaling):} Centra la variabile a media nulla e varianza unitaria ($\mu = 0$, $\sigma^2 = 1$):
+    \begin{equation}
+    x_{ij}' = \frac{x_{ij} - \mu_j}{\sigma_j}.
+    \end{equation}
+    \item \textbf{Min-Max Scaling:} Mappa i valori nell'intervallo compatto $[0, 1]$ (oppure $[-\pi, \pi]$, intervallo particolarmente vantaggioso per il \textit{quantum feature mapping} mediante gate di rotazione quantistica):
+    \begin{equation}
+    x_{ij}' = \frac{x_{ij} - \min(x_j)}{\max(x_j) - \min(x_j)}.
+    \end{equation}
+\end{itemize}
+
+\subsection{Riduzione della Dimensionalità: Principal Component Analysis (PCA)}
+La riduzione della dimensionalità riveste un'importanza fondamentale nei progetti di Quantum Machine Learning eseguiti su architetture NISQ (\textit{Noisy Intermediate-Scale Quantum}), a causa delle attuali limitazioni fisiche sul numero di qubit disponibili e sulla profondità dei circuiti. Questa operazione non si limita a semplificare la struttura dei dati, ma costituisce il ponte logico necessario per mappare lo spazio delle feature classiche in uno spazio di stato quantistico compatibile con le risorse computazionali.
+
+La PCA è una trasformazione ortogonale lineare che proietta i dati $\mathbf{X} \in \mathbb{R}^{n \times d}$ in un sottospazio a $k$ dimensioni ($k < d$), massimizzando la varianza dei dati proiettati.
+
+Matematicamente, data la matrice di covarianza campionaria $\boldsymbol{\Sigma} = \frac{1}{n-1} \mathbf{X}^T \mathbf{X}$ (assumendo dati preventivamente centrati a media nulla), si risolve il problema agli autovalori:
+\begin{equation}
+\boldsymbol{\Sigma} \mathbf{v}_i = \lambda_i \mathbf{v}_i, \quad i=1, \dots, d,
+\end{equation}
+dove $\lambda_1 \geq \lambda_2 \geq \dots \geq \lambda_d \geq 0$ sono gli autovalori e $\mathbf{v}_i$ gli autovettori ortonormali associati. Selezionando i primi $k$ autovettori corrispondenti ai $k$ autovalori maggiori, si ottiene la matrice di proiezione $\mathbf{W}_k \in \mathbb{R}^{d \times k}$, mediante la quale è possibile calcolare la rappresentazione ridotta del dataset $\mathbf{Z} = \mathbf{X} \mathbf{W}_k$.
+
+\section{Algoritmi di Classificazione Classica di Benchmark}
+In questa sezione vengono dettagliati i tre algoritmi scelti come benchmark classici per la valutazione comparativa. La scelta di questi specifici modelli non è casuale, ma è motivata da una combinazione di fattori storici, metodologici e pratici che li rende particolarmente adatti per il confronto con i modelli quantistici.
+
+\subsection{Logistic Regression}
+La Logistic Regression è un modello probabilistico lineare utilizzato per problemi di classificazione binaria. La probabilità a posteriori che un esempio $\mathbf{x}$ appartenga alla classe positiva $y=1$ è modellata tramite la funzione sigmoidale (o operatore logistico) $\sigma(z)$:
+\begin{equation}
+P(Y=1 | \mathbf{X}=\mathbf{x}) = \sigma(\mathbf{w}^T \mathbf{x} + b) = \frac{1}{1 + e^{-(\mathbf{w}^T \mathbf{x} + b)}},
+\end{equation}
+dove $\mathbf{w} \in \mathbb{R}^d$ è il vettore dei pesi e $b \in \mathbb{R}$ è il bias.
+
+La storia della regressione logistica risale al lavoro di Ronald Fisher negli anni '30, e successivamente è stata sviluppata e formalizzata da statistici come David Cox negli anni '50. La sua eleganza matematica e la sua efficienza computazionale ne fanno uno standard riconosciuto per il controllo base dei modelli di classificazione. La funzione di costo è strettamente convessa, garantendo un punto di minimo globale unico e una convergenza rapida. Questo comportamento la rende particolarmente adatta come baseline che può essere facilmente confrontata con modelli più complessi.
+
+L'ottimizzazione dei parametri avviene massimizzando la funzione di Log-verosimiglianza (\textit{Log-likelihood}):
+\begin{equation}
+\ell(\mathbf{w}, b) = \sum_{i=1}^{n} \left[ y_i \log \sigma(\mathbf{w}^T \mathbf{x}_i + b) + (1-y_i) \log (1 - \sigma(\mathbf{w}^T \mathbf{x}_i + b)) \right].
+\end{equation}
+La minimizzazione della perdita equivale a minimizzare la Cross-Entropy negativa. Poiché la funzione di costo è strettamente convessa, il punto di minimo globale può essere raggiunto in modo efficiente mediante algoritmi di ottimizzazione quasi-Newtoniani come L-BFGS o mediante Stochastic Gradient Descent (SGD).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.60\textwidth]{assets/logistic_regression.png}
+    \caption{\footnotesize Rappresentazione della funzione di attivazione sigmoidea utilizzata nella regressione logistica, che mappa i valori di input (x) alle probabilità di output.}
+    \label{fig:funzione_sigmoidale}
+\end{figure}
+
+\subsection{Support Vector Machines (SVM)}
+Le Support Vector Machines rappresentano uno dei modelli di classificazione a margine massimo più rigorosi dal punto di vista teorico. Questo modello è stato introdotto da Vladimir Vapnik durante la sua ricerca nel campo della teoria statistica dell'apprendimento negli anni '60, con una formalizzazione completa negli anni '90.
+
+La formulazione teorica ha profonde basi matematiche: il problema di ottimizzazione è fondato su principi di programmazione convessa e ha una soluzione unica grazie al teorema della dualità. Il concetto di margine massimo fornisce un interpretaione geometrica chiara delle capacità generalizzative dei modelli: il margine più ampio tra le classi indica una maggiore separabilità dei dati.
+
+\subsubsection{Formulazione Primal e Margine Ampio}
+Dato un set di addestramento linearmente separabile con $y_i \in \{-1, +1\}$, l'obiettivo è individuare un iperpiano di decisione $\mathbf{w}^T \mathbf{x} + b = 0$ che separi le classi massimizzando il margine geometrico $\frac{2}{\|\mathbf{w}\|_2}$.
+
+In presenza di dati non perfettamente separabili, si introduce una penalizzazione per le violazioni del margine mediante le variabili di \textit{slack} $\xi_i \ge 0$ (Formulazione Soft-Margin). Il problema di ottimizzazione primale si esprime come:
+\begin{equation}
+\begin{aligned}
+\min_{\mathbf{w}, b, \boldsymbol{\xi}} \quad & \frac{1}{2} \|\mathbf{w}\|^2 + C \sum_{i=1}^{n} \xi_i \\
+\text{s.t.} \quad & y_i (\mathbf{w}^T \mathbf{x}_i + b) \ge 1 - \xi_i, \quad \forall i=1, \dots, n \\
+& \xi_i \ge 0, \quad \forall i=1, \dots, n,
+\end{aligned}
+\end{equation}
+dove $C > 0$ è un iperparametro di regolarizzazione che governa il compromesso tra l'ampiezza del margine e le violazioni ammesse.
+
+\subsubsection{Formulazione Duale di Wolfe e Kernel Trick}
+Applicando i moltiplicatori di Lagrange $\alpha_i \ge 0$ e $\mu_i \ge 0$, la funzione Lagrangiana è:
+\begin{equation}
+\mathcal{L}(\mathbf{w}, b, \boldsymbol{\xi}, \boldsymbol{\alpha}, \boldsymbol{\mu}) = \frac{1}{2} \|\mathbf{w}\|^2 + C \sum_{i=1}^n \xi_i - \sum_{i=1}^n \alpha_i \left[ y_i(\mathbf{w}^T \mathbf{x}_i + b) - 1 + \xi_i \right] - \sum_{i=1}^n \mu_i \xi_i.
+\end{equation}
+Annullando le derivate parziali rispetto alle variabili primali ($\mathbf{w}, b, \boldsymbol{\xi}$), si ottengono le condizioni di ottimalità Karush-Kuhn-Tucker (KKT):
+\begin{equation}
+\mathbf{w} = \sum_{i=1}^{n} \alpha_i y_i \mathbf{x}_i, \quad \sum_{i=1}^{n} \alpha_i y_i = 0, \quad C - \alpha_i - \mu_i = 0.
+\end{equation}
+
+\noindent Sostituendo tali relazioni nella Lagrangiana si ottiene la forma duale di Wolfe:
+\begin{equation}
+\begin{aligned}
+\max_{\boldsymbol{\alpha}} \quad & \sum_{i=1}^{n} \alpha_i - \frac{1}{2} \sum_{i=1}^{n} \sum_{j=1}^{n} \alpha_i \alpha_j y_i y_j \langle \mathbf{x}_i, \mathbf{x}_j \rangle \\
+\text{s.t.} \quad & 0 \le \alpha_i \le C, \quad \forall i=1, \dots, n \\
+& \sum_{i=1}^{n} \alpha_i y_i = 0.
+\end{aligned}
+\end{equation}
+
+\noindent I vettori per i quali $\alpha_i > 0$ sono definiti \textit{vettori di supporto} (\textit{support vectors}).
+
+Nel caso di pattern non linearmente separabili nello spazio originale $\mathbb{R}^d$, si applica una mappatura non lineare $\Phi: \mathcal{X} \to \mathcal{F}$ in uno spazio di Hilbert ad alta (o infinita) dimensione $\mathcal{F}$. Grazie al \textbf{Kernel Trick}\footnote{Boser, B. E., Guyon, I. M., \& Vapnik, V. N. (1992). A training algorithm for optimal margin classifiers. \textit{Proceedings of the fifth annual workshop on Computational learning theory}, 144-152.}, non è necessario calcolare esplicitamente la trasformazione $\Phi(\mathbf{x})$, ma è sufficiente valutare la funzione kernel $K(\mathbf{x}_i, \mathbf{x}_j) = \langle \Phi(\mathbf{x}_i), \Phi(\mathbf{x}_j) \rangle_{\mathcal{F}}$.
+
+Tra le funzioni Kernel classiche più ampie figura il Kernel Gaussiano a base Radiale (RBF):
+\begin{equation}
+K_{\text{RBF}}(\mathbf{x}_i, \mathbf{x}_j) = \exp\left( -\gamma \|\mathbf{x}_i - \mathbf{x}_j\|^2 \right), \quad \gamma > 0.
+\end{equation}
+
+\textit{Nota metodologica:} Il concetto di Kernel Trick applicato alle SVM costituisce l'esatto analogo matematico del \textit{Quantum Kernel Estimation} (QKE), in cui lo spazio delle caratteristiche $\mathcal{F}$ è sostituito dallo spazio degli stati di Hilbert dei qubit, e la mappa $\Phi(\mathbf{x})$ è implementata da un circuito quantistico parametrizzato.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{assets/svm_hyperplane.png}
+    \caption{\footnotesize Iperpiano di separazione e margine massimo in una Support Vector Machine.}
+    \label{fig:svm_hyperplane}
+\end{figure}
+
+\subsection{Random Forest}
+Il Random Forest\footnote{Breiman, L. (2001). Random Forests. \textit{Machine Learning}, 45(1), 5-32.} rappresenta uno dei primi e più importanti esempi di algoritmi di apprendimento d'insieme (ensemble learning). Questo approccio è stato introdotto da Leo Breiman e Adele Cutler nel 2001, basandosi su principi già consolidati di bagging e di aggregazione di modelli predittivi.
+
+L'approccio dell'ensemble si basa sull'idea che combinando modelli diversi combinati si possa ottenere un miglioramento della capacità predittiva rispetto a una singola classificazione. La particolare combinazione di bootstrap aggregating e decision tree ha dimostrato una notevole robustezza e un'elevata capacità di generalizzazione, rendendo il Random Forest uno strumento standard ampiamente adottato nell'ambiente ML.
+
+\subsubsection{Algoritmo di Costruzione}
+Per un ensemble composto da $B$ alberi di decisione:
+\begin{enumerate}
+    \item Per ogni albero $b = 1, \dots, B$:
+    \begin{enumerate}
+        \item Si estrae un campione bootstrap $\mathcal{D}_b$ di dimensione $n$ dal dataset originale $\mathcal{D}$ tramite campionamento con reinserimento.
+        \item Si addestra un albero di decisione $T_b$ sul campione $\mathcal{D}_b$. In ogni nodo dell'albero, la scelta della migliore scissione (\textit{split}) non avviene su tutte le $d$ feature, ma su un sottoinsieme casuale di dimensione $m \ll d$ (tipicamente $m = \lfloor\sqrt{d}\rfloor$).
+        \item L'albero viene fatto crescere fino a una profondità massima $d_{\max}$ o fino al raggiungimento di un numero minimo di campioni per foglia, senza applicare potatura (\textit{pruning}).
+    \end{enumerate}
+\end{enumerate}
+
+La regola di decisione per un nuovo campione $\mathbf{x}$ nel caso della classificazione binaria/multiclasse si basa sul voto di maggioranza (\textit{majority voting}):
+\begin{equation}
+\hat{y} = \text{mode} \left\{ T_1(\mathbf{x}), T_2(\mathbf{x}), \dots, T_B(\mathbf{x}) \right\}.
+\end{equation}
+
+\subsubsection{Misure di Impurità}
+La scissione nei nodi degli alberi di decisione avviene minimizzando una misura di impurità. Le metriche più comunemente impiegate sono:
+\begin{itemize}
+    \item \textbf{Indice di Impurità di Gini:}
+    \begin{equation}
+    I_G(p) = 1 - \sum_{k=1}^{K} p_k^2;
+    \end{equation}
+    \item \textbf{Entropia (Informazionale di Shannon):}
+    \begin{equation}
+    I_H(p) = -\sum_{k=1}^{K} p_k \log_2(p_k);
+    \end{equation}
+\end{itemize}
+dove $p_k$ rappresenta la proporzione di campioni appartenenti alla classe $k$ presente nel nodo considerato.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{assets/random_forest.png}
+    \caption{\footnotesize Architettura ad albero combinato dell'algoritmo Random Forest.}
+    \label{fig:random_forest}
+\end{figure}
+
+\section{Metodologia di Valutazione delle Prestazioni}
+
+Per garantire un confronto oggettivo e statisticamente solido tra modelli classici e modelli quantistici, è necessario definire una metodologia di validazione rigorosa, capace di mitigare gli effetti della varianza statistica e dell'overfitting, insieme a un set esaustivo di metriche prestazionali.
+
+\subsection{Partizionamento e Stratified $K$-Fold Cross-Validation}
+I dataset reali presentano frequentemente distribuzioni sbilanciate tra le classi. Un semplice \textit{hold-out split} casuale rischierebbe di produrre subset non rappresentativi della distribuzione originale, compromettendo l'affidabilità del test.
+
+Si adotta pertanto la \textbf{Stratified $K$-Fold Cross-Validation}. Il dataset $\mathcal{D}$ viene suddiviso in $K$ partizioni disgiunte $\mathcal{D}_1, \dots, \mathcal{D}_K$ preservando in ciascuna la medesima distribuzione di classe del set originale. A ogni iterazione $k \in \{1, \dots, K\}$, il modello viene addestrato su $\mathcal{D} \setminus \mathcal{D}_k$ e validato su $\mathcal{D}_k$. La prestazione finale è calcolata come media aritmetica dei risultati ottenuti sui $K$ fold, riducendo la dipendenza dell'algoritmo dallo specifico split scelto\footnote{Hastie, T., Tibshirani, R., \& Friedman, J. (2009). \textit{The Elements of Statistical Learning: Data Mining, Inference, and Prediction}. Springer Science \& Business Media.}.
+
+\subsection{Matrice di Confusione e Metriche di Classificazione}
+Per quantificare l'errore del modello in problemi di classificazione binaria, si utilizza la matrice di confusione (Tab. \ref{tab:matrice_confusione}), dalla quale derivano gli indicatori fondamentali di prestazione:
+
+\begin{table}[h]
+\centering
+\caption{Matrice di Confusione}
+\label{tab:matrice_confusione}
+\begin{tabular}{l|c|c}
+\hline
+& \textbf{Predetto Negativo ($Y=0$)} & \textbf{Predetto Positivo ($Y=1$)} \\
+\hline
+\textbf{Reale Negativo ($Y=0$)} & True Negative (TN) & False Positive (FP) \\
+\textbf{Reale Positivo ($Y=1$)} & False Negative (FN) & True Positive (TP) \\
+\hline
+\end{tabular}
+\end{table}
+
+Oltre ad Accuracy, Precision, Recall e F1-Score, è essenziale considerare:
+\begin{itemize}
+    \item \textbf{Specificity (True Negative Rate):} $\text{TN} / (\text{TN} + \text{FP})$, fondamentale per bilanciare la Recall nei casi in cui l'identificazione dei negativi sia altrettanto critica dei positivi.
+    \item \textbf{Matthews Correlation Coefficient (MCC):} Un indicatore più robusto dell'F1-Score, poiché tiene conto di tutti e quattro i quadranti della matrice di confusione, fornendo un valore di correlazione tra predizione e realtà tra -1 e +1.
+\end{itemize}
+
+\subsection{Analisi ROC e Area Under the Curve (AUC)}
+La curva ROC (\textit{Receiver Operating Characteristic}) descrive il comportamento del classificatore al variare della soglia decisionale $\tau$, tracciando il True Positive Rate (TPR) rispetto al False Positive Rate (FPR). L'integrazione della curva, ovvero il valore \textbf{ROC-AUC}, fornisce una misura scalare dell'efficacia discriminativa del modello, invariante rispetto alla soglia operativa scelta.
+Si osserva che mentre per i modelli classici la soglia $\tau$ è facilmente manipolabile, nei modelli quantistici tale processo spesso richiede la mappatura delle ampiezze di probabilità degli stati quantistici finali in una scala continua, introducendo sfide di calibrazione aggiuntive.
+
+\section{Analisi della Complessità Computazionale e Limiti dei Modelli Classici}
+
+L'analisi dei vincoli computazionali dei modelli classici è cruciale per comprendere il \textit{Quantum Advantage}.
+
+\subsection{Complessità di Addestramento e Inferenza}
+La Tabella \ref{tab:complessita_modelli} riassume la complessità asintotica dei principali paradigmi di apprendimento.
+
+\begin{table}[h]
+\centering
+\caption{Complessità computazionale: $n$ campioni, $d$ feature, $B$ alberi.}
+\label{tab:complessita_modelli}
+\begin{tabular}{l|c|c|c}
+\hline
+\textbf{Algoritmo} & \textbf{Training} & \textbf{Inference} & \textbf{Space} \\
+\hline
+Logistic Regression & $O(n \cdot d)$ & $O(d)$ & $O(d)$ \\
+SVM (Kernel RBF) & $O(n^2 \cdot d \text{ a } n^3 \cdot d)$ & $O(n_{\text{sv}} \cdot d)$ & $O(n_{\text{sv}} \cdot d)$ \\
+Random Forest & $O(B \cdot n \log n \cdot d)$ & $O(B \cdot d_{\max})$ & $O(B \cdot \text{nodes})$ \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{La Maledizione della Dimensionalità e la Prospettiva Quantistica}
+Il superamento della \textit{Maledizione della Dimensionalità}\footnote{Bellman, R., \& Bellman, R. E. 1961, \textit{Adaptive Control Processes: A Guided Tour}. Princeton University Press.} rappresenta una delle motivazioni principali per l'integrazione di tecniche di \textit{Quantum Feature Mapping}.
+In spazi classici, l'esplorazione di feature ad alto ordine (es. polinomi di grado elevato) comporta un'esplosione combinatoria che rende il calcolo delle matrici di Gram proibitivo.
+I modelli quantistici, attraverso la \textit{Quantum Feature Map}, mappano i dati in uno spazio di Hilbert di dimensione $2^N$ (dove $N$ è il numero di qubit) utilizzando operazioni unitarie. Questa intrinseca capacità di gestire spazi ad altissima dimensionalità, combinata con il fenomeno dell'\textit{entanglement}, consente di definire kernel quantistici (\textit{Quantum Kernels}) che non sono trattabili classicamente, aprendo potenziali vie per identificare regolarità nei dati che sfuggono ai modelli basati su distanze euclidee standard.
+
