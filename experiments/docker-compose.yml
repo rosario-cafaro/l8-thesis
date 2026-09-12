@@ -1,0 +1,20 @@
+services:
+  thesis-qml:
+    build: .
+    container_name: thesis-qml
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/home/thesis-user/projects/thesis/notebooks
+      - ./src:/home/thesis-user/projects/thesis/src
+      - ./data:/home/thesis-user/projects/thesis/data
+      - ./results:/home/thesis-user/projects/thesis/results
+      - ./config.py:/home/thesis-user/projects/thesis/config.py
+      - ./run_pipeline.py:/home/thesis-user/projects/thesis/run_pipeline.py
+    environment:
+      - QISKIT_IBM_TOKEN=${QISKIT_IBM_TOKEN}
+      - QISKIT_IBM_CHANNEL=${QISKIT_IBM_CHANNEL}
+    deploy:
+      resources:
+        limits:
+          memory: 8G

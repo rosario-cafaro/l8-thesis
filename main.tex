@@ -40,14 +40,30 @@
 \usepackage{titling}
 \usepackage{braket}
 \usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    breakatwhitespace=false,
+    showstringspaces=false,
+    columns=fullflexible,
+    keepspaces=true,
+    tabsize=4,
+    frame=none,
+    aboveskip=6pt,
+    belowskip=6pt,
+    numbers=none,
+}
 \usepackage[font=small,labelfont=bf]{caption}
 \usepackage{tikz}
 \usepackage{quantikz}
 \usepackage{subcaption}
 \usepackage{tabularx}
 \usepackage{pgfplots}
+\usepackage{amstext}
 \pgfplotsset{compat=1.18}
 \usetikzlibrary{arrows.meta, positioning, fit, backgrounds}
+\usepackage{makecell}
+\usepackage{array}
 
 \begin{document}
 
@@ -73,4 +89,3 @@
 \input{10_ringraziamenti}
 
 \end{document}
-

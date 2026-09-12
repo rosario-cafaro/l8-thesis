@@ -32,11 +32,14 @@ Questo approccio trova principale applicazione in due macro-categorie di problem
 \end{figure}
 
 \subsection{Apprendimento Non Supervisionato}
-Nell'apprendimento non supervisionato il modello opera su dati privi di annotazioni, etichette o risposte target esplicite. Il dataset comprende esclusivamente i vettori di ingresso:
+Quando si lavora con l'apprendimento non supervisionato, l'obiettivo principale è
+mappare i dati senza avere a disposizione una ``risposta corretta'' o un'etichetta
+di riferimento. In pratica, il dataset è composto unicamente dai vettori di input
 \begin{equation}
-    \mathcal{D} = \{\mathbf{x}_i\}_{i=1}^n, \quad \mathbf{x}_i \in \mathbb{R}^d.
+\mathbf{x}_i \in \mathbb{R}^d \quad (\text{per } i = 1, \dots, n)
 \end{equation}
-L'algoritmo non riceve una guida esterna (\textit{ground truth}) e mira autonomamente a identificare strutture latenti, densità di probabilità, regolarità geometriche o raggruppamenti naturali intrinseci ai dati stessi. Questo approccio è fondamentale per l'esplorazione iniziale dei dati, il rilevamento delle anomalie e la compressione delle informazioni.
+che definiscono lo spazio delle caratteristiche. Non essendoci una guida esterna o una \textit{ground truth} a fare da bussola, l'algoritmo deve muoversi in autonomia: esplora la geometria dei dati per far emergere da solo pattern nascosti, densità di probabilità o raggruppamenti spontanei.
+Si tratta di un approccio decisamente esplorativo, fondamentale nelle fasi iniziali di analisi o per ridurre la dimensionalità delle informazioni.
 
 Le metodologie chiave si articolano principalmente in due aree:
 
@@ -48,8 +51,10 @@ Le metodologie chiave si articolano principalmente in due aree:
     \end{equation}
     dove $S_j$ rappresenta il sottoinsieme di punti assegnati al cluster $j-esimo$ e $\boldsymbol{\mu}_j$ è il centroide associato. Altri approcci rilevanti includono DBSCAN, basato sulla densità e in grado di scoprire cluster di forma arbitraria, e il clustering gerarchico.
 
-    \item \textbf{Riduzione della Dimensionalità:} Si occupa della proiezione dei dati da uno spazio ad alta dimensionalità $d$ a uno spazio a bassa dimensionalità $k$ (con $k \ll d$). Questa tecnica permette di mitigare la "maledizione della dimensionalità" (\textit{curse of dimensionality}), visualizzare dati complessi e ottimizzare le risorse computazionali preservando proprietà fondamentali del dataset.
-    Tra i metodi lineari spicca l'Analisi delle Componenti Principali (\textit{PCA}), che massimizza la varianza trattenuta lungo i nuovi assi ortogonali. Per la visualizzazione non lineare di strutture complesse e varietà geometriche (\textit{manifolds}), si utilizzano tecniche avanzate quali t-SNE e UMAP, che preservano le distanze topologiche locali e globali.
+    \item \textbf{Riduzione della Dimensionalità:} Si occupa della proiezione dei dati da uno spazio ad alta dimensionalità $d$ a uno spazio a bassa dimensionalità $k$ (con $k \ll d$). Questo tipo di approccio è essenziale per disinnescare la cosiddetta ``maledizione della dimensionalità'' (\textit{curse of dimensionality}), un problema che altrimenti renderebbe i dati intrattabili.
+    Riducendo le variabili, non solo si alleggerisce il carico computazionale, ma si riesce a dare una forma visiva a strutture altrimenti invisibili, senza però distruggere le informazioni chiave del dataset.
+    Sul fronte lineare, lo strumento d'elezione resta l'Analisi delle Componenti Principali (\textit{PCA}), che si basa sulla massimizzazione della varianza lungo assi ortogonali.
+    Quando però la geometria si complica e ci si scontra con varietà non lineari (\textit{manifolds}), entrano in gioco algoritmi più raffinati come t-SNE e UMAP, pensati proprio per mappare il problema rispettando le relazioni di vicinanza locali e globali.
 \end{itemize}
 
 \begin{figure}[htbp]
@@ -99,7 +104,8 @@ Considerando un problema di regressione con funzione di perdita quadratica, l'er
 \begin{equation}
 \mathbb{E}\left[(y - \hat{f}(\mathbf{x}))^2\right] = \text{Bias}\left[\hat{f}(\mathbf{x})\right]^2 + \text{Var}\left[\hat{f}(\mathbf{x})\right] + \sigma^2_{\epsilon},
 \end{equation}
-dove $\sigma^2_{\epsilon}$ rappresenta il rumore irriducibile intrinseco alla distribuzione dei dati. Da questo bilanciamento derivano i due principali regimi di fallimento dell'apprendimento:
+dove $\sigma^2_{\epsilon}$ rappresenta il rumore irriducibile intrinseco alla distribuzione dei dati.
+I due errori più comuni dell'apprendimento sono:
 
 \begin{itemize}
     \item \textbf{Underfitting (Alto Bias):} Si manifesta quando il modello possiede una capacità espressiva insufficiente per catturare la complessità strutturale sottostante ai dati. Un esempio classico è l'impiego di un regressore lineare per approssimare relazioni fortemente non lineari, il che si traduce in un errore sistematico elevato sia sul set di training che su quello di test.
@@ -169,8 +175,10 @@ A seconda della natura dell'algoritmo di classificazione e del modello adottato,
 \section{Preprocessing dei Dati per Dataset Reali}
 I dataset del mondo reale presentano intrinsecamente problematiche di rumore, disomogeneità di scala e alta dimensionalità. La fase di preparazione è cruciale sia per la stabilizzazione della convergenza nei modelli classici, sia per consentire una corretta codifica dei dati all'interno dei registri quantistici.
 
-\subsection{Normalizzazione e Feature Scaling}
-Gli algoritmi basati sul calcolo delle distanze (es. SVM, $k$-NN) o sull'ottimizzazione basata su gradiente (es. Regressione Logistica) risentono fortemente della disomogeneità di scala delle variabili. Di conseguenza, la scelta del metodo di scaling assume un ruolo chiave: una trasformazione inappropriata può infatti compromettere l'efficienza e la stabilità dei modelli, risultando inoltre in una codifica distorta o inefficiente nel caso dei modelli quantistici.
+\subsection{Normalizzazione e Ridimensionamento delle Caratteristiche}
+
+Gli algoritmi basati sulla distanza (come SVM, $k$-NN) e gli algoritmi basati sull'ottimizzazione (come la Regressione Logistica) sono estremamente sensibili alle incongruenze di scala nelle variabili. Pertanto la scelta del metodo di ridimensionamento diventa estremamente importante in quanto una scelta sbagliata può effettivamente influenzare l'efficienza e la coerenza dell'algoritmo.
+L'encoding diventa distorto per gli algoritmi quantistici nel caso di un ridimensionamento sbagliato.
 
 \begin{itemize}
     \item \textbf{Standardizzazione (Z-score Scaling):} Centra la variabile a media nulla e varianza unitaria ($\mu = 0$, $\sigma^2 = 1$):
@@ -192,10 +200,13 @@ Matematicamente, data la matrice di covarianza campionaria $\boldsymbol{\Sigma} 
 \begin{equation}
 \boldsymbol{\Sigma} \mathbf{v}_i = \lambda_i \mathbf{v}_i, \quad i=1, \dots, d,
 \end{equation}
-dove $\lambda_1 \geq \lambda_2 \geq \dots \geq \lambda_d \geq 0$ sono gli autovalori e $\mathbf{v}_i$ gli autovettori ortonormali associati. Selezionando i primi $k$ autovettori corrispondenti ai $k$ autovalori maggiori, si ottiene la matrice di proiezione $\mathbf{W}_k \in \mathbb{R}^{d \times k}$, mediante la quale è possibile calcolare la rappresentazione ridotta del dataset $\mathbf{Z} = \mathbf{X} \mathbf{W}_k$.
+dove $\lambda_1 \geq \lambda_2 \geq \dots \geq \lambda_d \geq 0$ sono gli autovalori e $\mathbf{v}_i$ gli autovettori ortonormali associati.
+Scegliendo i primi $k$ autovettori associati ai $k$ autovalori maggiori definiamo la matrice di proiezione $\mathbf{W}_k \in \mathbb{R}^{d \times k}$, utilizzando la quale calcoliamo il dataset ridotto $\mathbf{Z} = \mathbf{X} \mathbf{W}_k$.
 
 \section{Algoritmi di Classificazione Classica di Benchmark}
-In questa sezione vengono dettagliati i tre algoritmi scelti come benchmark classici per la valutazione comparativa. La scelta di questi specifici modelli non è casuale, ma è motivata da una combinazione di fattori storici, metodologici e pratici che li rende particolarmente adatti per il confronto con i modelli quantistici.
+\label{sec:algoritmi_classificazione_classica}
+
+In questa sezione vengono introdotti i tre algoritmi selezionati come strumenti di confronto per un'analisi comparativa.La scelta di questi modelli in particolare non è arbitraria e le ragioni che la sostengono includono diversi fattori storici e pratici.
 
 \subsection{Logistic Regression}
 La Logistic Regression è un modello probabilistico lineare utilizzato per problemi di classificazione binaria. La probabilità a posteriori che un esempio $\mathbf{x}$ appartenga alla classe positiva $y=1$ è modellata tramite la funzione sigmoidale (o operatore logistico) $\sigma(z)$:
@@ -322,6 +333,7 @@ dove $p_k$ rappresenta la proporzione di campioni appartenenti alla classe $k$ p
 Per garantire un confronto oggettivo e statisticamente solido tra modelli classici e modelli quantistici, è necessario definire una metodologia di validazione rigorosa, capace di mitigare gli effetti della varianza statistica e dell'overfitting, insieme a un set esaustivo di metriche prestazionali.
 
 \subsection{Partizionamento e Stratified $K$-Fold Cross-Validation}
+\label{sec:partizionamento_kfold}
 I dataset reali presentano frequentemente distribuzioni sbilanciate tra le classi. Un semplice \textit{hold-out split} casuale rischierebbe di produrre subset non rappresentativi della distribuzione originale, compromettendo l'affidabilità del test.
 
 Si adotta pertanto la \textbf{Stratified $K$-Fold Cross-Validation}. Il dataset $\mathcal{D}$ viene suddiviso in $K$ partizioni disgiunte $\mathcal{D}_1, \dots, \mathcal{D}_K$ preservando in ciascuna la medesima distribuzione di classe del set originale. A ogni iterazione $k \in \{1, \dots, K\}$, il modello viene addestrato su $\mathcal{D} \setminus \mathcal{D}_k$ e validato su $\mathcal{D}_k$. La prestazione finale è calcolata come media aritmetica dei risultati ottenuti sui $K$ fold, riducendo la dipendenza dell'algoritmo dallo specifico split scelto\footnote{Hastie, T., Tibshirani, R., \& Friedman, J. (2009). \textit{The Elements of Statistical Learning: Data Mining, Inference, and Prediction}. Springer Science \& Business Media.}.
@@ -350,8 +362,7 @@ Oltre ad Accuracy, Precision, Recall e F1-Score, è essenziale considerare:
 \end{itemize}
 
 \subsection{Analisi ROC e Area Under the Curve (AUC)}
-La curva ROC (\textit{Receiver Operating Characteristic}) descrive il comportamento del classificatore al variare della soglia decisionale $\tau$, tracciando il True Positive Rate (TPR) rispetto al False Positive Rate (FPR). L'integrazione della curva, ovvero il valore \textbf{ROC-AUC}, fornisce una misura scalare dell'efficacia discriminativa del modello, invariante rispetto alla soglia operativa scelta.
-Si osserva che mentre per i modelli classici la soglia $\tau$ è facilmente manipolabile, nei modelli quantistici tale processo spesso richiede la mappatura delle ampiezze di probabilità degli stati quantistici finali in una scala continua, introducendo sfide di calibrazione aggiuntive.
+La curva ROC (\textit{Receiver Operating Characteristic}) descrive il comportamento del classificatore al variare della soglia decisionale $\tau$, tracciando il True Positive Rate (TPR) rispetto al False Positive Rate (FPR). Integrando la curva ROC, la misura nota come \textbf{ROC-AUC} ci fornisce un valore assoluto che indica la potenza discriminante del modello indipendentemente dalla soglia selezionata. È importante menzionare che a differenza dei modelli classici dove la soglia $\tau$ è molto flessibile, nel caso dei modelli quantistici essa deve essere mappata su un continuum attraverso le ampiezze probabilistiche degli stati quantistici.
 
 \section{Analisi della Complessità Computazionale e Limiti dei Modelli Classici}
 
@@ -379,4 +390,3 @@ Random Forest & $O(B \cdot n \log n \cdot d)$ & $O(B \cdot d_{\max})$ & $O(B \cd
 Il superamento della \textit{Maledizione della Dimensionalità}\footnote{Bellman, R., \& Bellman, R. E. 1961, \textit{Adaptive Control Processes: A Guided Tour}. Princeton University Press.} rappresenta una delle motivazioni principali per l'integrazione di tecniche di \textit{Quantum Feature Mapping}.
 In spazi classici, l'esplorazione di feature ad alto ordine (es. polinomi di grado elevato) comporta un'esplosione combinatoria che rende il calcolo delle matrici di Gram proibitivo.
 I modelli quantistici, attraverso la \textit{Quantum Feature Map}, mappano i dati in uno spazio di Hilbert di dimensione $2^N$ (dove $N$ è il numero di qubit) utilizzando operazioni unitarie. Questa intrinseca capacità di gestire spazi ad altissima dimensionalità, combinata con il fenomeno dell'\textit{entanglement}, consente di definire kernel quantistici (\textit{Quantum Kernels}) che non sono trattabili classicamente, aprendo potenziali vie per identificare regolarità nei dati che sfuggono ai modelli basati su distanze euclidee standard.
-

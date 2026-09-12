@@ -364,6 +364,7 @@ L'ottimizzazione dei parametri $\boldsymbol{\theta}$ in presenza di rumore hardw
 \end{itemize}
 
 \subsection{Confronto Analitico ed Architetturale: QSVC vs VQC}
+\label{sec:confronto_qsvc_vqc}
 La scelta tra un approccio basato su kernel quantistici (QSVC) ed un approccio variazionale (VQC) implica precisi bilanciamenti dal punto di vista metodologico e computazionale, sintetizzati nella Tabella~\ref{tab:confronto_qsvc_vqc}.
 
 \begin{table}[htbp]
@@ -391,6 +392,7 @@ La scelta tra un approccio basato su kernel quantistici (QSVC) ed un approccio v
 Sebbene i modelli di Quantum Machine Learning offrano teoricamente l'accesso a spazi di rappresentazione ad elevata dimensionalità, l'applicazione pratica su hardware reali attuali risente di rilevanti vincoli teorici e fisici.
 
 \subsection{Analisi della Complessità Computazionale e di Spazio}
+\label{sec:complessita_qml}
 La complessità di esecuzione di un algoritmo QML è determinata da tre risorse fondamentali:
 \begin{enumerate}
     \item \textbf{Numero di Qubit ($n$):} Vincolato alla dimensione del vettore delle feature $d$ (o a $\log_2 d$ nel caso di Amplitude Encoding).
@@ -405,6 +407,7 @@ La complessità di esecuzione di un algoritmo QML è determinata da tre risorse 
 Per l'architettura QSVC, la costruzione della matrice di Gram richiede il calcolo di $\frac{N(N-1)}{2}$ elementi distinti, dove $N$ è il numero di campioni del training set (da non confondere con il numero di qubit $n$ impiegati dal circuito di encoding). Ciascun elemento necessita di un circuito di profondità $2 D_{\Phi}$ seguito da $N_{\text{shots}}$ valutazioni. Per il VQC, la complessità di ciascuna epoca di training è scalata dal numero di parametri $m$ moltiplicato per il costo di calcolo del gradiente ($2m$ valutazioni quantistiche per passo usando la Parameter-Shift Rule).
 
 \subsection{Il Fenomeno dei Barren Plateaus}
+\label{sec:barren_plateaus}
 Un ostacolo fondamentale nell'addestramento dei circuiti quantistici variazionali è il fenomeno dei \textbf{Barren Plateaus} (altipiani sterili)\footnote{McClean, J. R., Boixo, S., Smelyanskiy, V. N., Babbush, R., \& Neven, H. (2018). Barren plateaus in quantum neural network training landscapes. \textit{Nature Communications}, 9(1), 4812.}.
 
 Quando un PQC mostra un livello elevato di espressività e l'Ansatz forma un $2$-design di Haar sullo spazio di Hilbert, la varianza delle derivate parziali della funzione di costo decresce esponenzialmente al crescere del numero di qubit $n$:
@@ -449,6 +452,7 @@ Questo implica che il paesaggio della funzione di costo (\textit{loss landscape}
 \end{figure}
 
 \subsection{Rumore Quantistico e Vincoli dell'Era NISQ}
+\label{sec:rumore_nisq}
 I computer quantistici attuali appartengono all'era \textbf{NISQ} (\textit{Noisy Intermediate-Scale Quantum}), caratterizzata da un numero limitato di qubit ($10^1 - 10^3$) privi di correzione dei codici d'errore (\textit{Fault-Tolerant Quantum Computing}).
 
 Le principali fonti di errore fisico che degradano le prestazioni delle architetture QML comprendono:
@@ -466,6 +470,4 @@ Il Quantum Machine Learning si attesta come un paradigma computazionale avanzato
 Mentre QSVC garantisce una convergenza globale grazie alla natura convessa dell'ottimizzazione duale, VQC offre una flessibilità parametrica vicina alle architetture Deep Learning tradizionali, al prezzo di sfide legate alla convergenza del gradiente in presenza di Barren Plateaus e rumore quantistico.
 
 Nei capitoli successivi verranno delineate l'architettura del sistema sperimentale ed i dettagli dell'implementazione. In particolare, il Capitolo~\ref{cap:architettura_sistema_metodologia} formalizzerà la metodologia di test ed il workflow integrato su dataset reali, mentre il Capitolo~\ref{cap:implementazione_sperimentale_risultati} presenterà la valutazione empirica comparativa tra gli algoritmi classici (Logistic Regression, SVM, Random Forest) e quantistici (QSVC, VQC) in ambiente di simulazione ed hardware reale.
-
-
 

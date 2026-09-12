@@ -13,13 +13,13 @@ L'architettura complessiva può essere suddivisa nei seguenti moduli logici:
 \begin{enumerate}
     \item \textbf{Modulo di acquisizione dei dati}: si occupa del caricamento dei dataset dalle librerie standard (Scikit-learn) e dalla loro validazione preliminare (verifica di valori mancanti, tipi di dato, bilanciamento delle classi).
     \item \textbf{Modulo di preprocessing}: applica la normalizzazione Min-Max e, dove necessario, la riduzione della dimensionalità tramite Analisi delle Componenti Principali (PCA), producendo in uscita un insieme di feature compatibile sia con i classificatori classici sia con il numero di qubit disponibili per i circuiti quantistici.
-    \item \textbf{Modulo di codifica quantistica}: trasforma i vettori di feature preprocessati in circuiti quantistici parametrici (feature map), secondo le modalità descritte nella Sezione~\ref{sec:circuiti_quantistici}.
-    \item \textbf{Modulo di addestramento}: comprende sia gli algoritmi classici di Scikit-learn, utilizzati come baseline, sia i modelli quantistici QSVC e VQC implementati tramite qiskit-machine-learning.
-    \item \textbf{Modulo di esecuzione}: gestisce l'invio dei circuiti al backend selezionato, che può essere un simulatore locale privo di rumore, un simulatore con modello di rumore, oppure un dispositivo quantistico reale accessibile tramite IBM Quantum Platform.
-    \item \textbf{Modulo di valutazione}: calcola le metriche di performance (Sezione~\ref{sec:protocollo_sperimentale}) e produce i risultati comparativi tra i modelli classici e quantistici.
+    \item \textbf{Modulo di codifica quantistica}: Converte i vettori dei dati preelaborati in circuiti quantistici parametrizzati (mappa delle caratteristiche) ,in accordo con i due metodi indicati nella Sezione~\ref{sec:circuiti_quantistici}.
+    \item \textbf{Modulo di addestramento}: Prevede sia algoritmi classici forniti da Scikit-learn per avere un punto di riferimento, che modelli quantistici come QSVC e VQC costruiti tramite qiskit-machine-learning.
+    \item \textbf{Modulo di esecuzione}: Gestisce il trasferimento dei circuiti sul back end scelto che può essere sia un simulatore locale senza rumore, sia un simulatore con rumore, sia un dispositivo quantistico reale disponibile sulla IBM Quantum Platform.
+    \item \textbf{Modulo di valutazione}: Calcola le metriche delle prestazioni (Sezione~\ref{sec:protocollo_sperimentale}) e genera il confronto tra i risultati ottenuti dai modelli classici e quantistici.
 \end{enumerate}
 
-Il flusso dei dati attraversa questi moduli in sequenza, ma l'architettura consente di eseguire ciascuna fase in maniera indipendente e di salvare i risultati intermedi (ad esempio i dati normalizzati e ridotti dimensionalmente), evitando di dover ripetere l'intera pipeline per ogni configurazione testata.
+Il flusso dei dati avviene attraverso questi moduli in sequenza ma l'architettura permette lo svolgimento autonomo di ogni singola fase e la memorizzazione degli stati intermedi (ad esempio i dati normalizzati).
 
 \begin{figure}[htbp]
     \centering
@@ -68,7 +68,8 @@ Questa organizzazione modulare riflette anche la struttura del codice sorgente e
 L'intero sistema si basa su un workflow strutturato che permette di addestrare e valutare modelli di machine learning quantistico utilizzando il framework Qiskit\footnote{Qiskit contributors. (2019). \textit{Qiskit: An Open-Source Framework for Quantum Computing}. Zenodo. \url{https://doi.org/10.5281/zenodo.2562111}.}. Il workflow complessivo comprende diverse fasi: raccolta e preparazione dei dati, preprocessing, addestramento del modello quantistico, valutazione delle performance e confronto con modelli classici. Tutte le fasi sono implementate utilizzando Python e librerie standard del data science, eseguite all'interno di un ambiente containerizzato per garantire la riproducibilità dei risultati.
 
 \subsection{Python e librerie scientifiche di base}
-Python è il linguaggio principale utilizzato per lo sviluppo del sistema, grazie alla sua semplicità, flessibilità e alla vasta gamma di librerie disponibili per il data science. Per lo sviluppo viene utilizzato l'ambiente Jupyter Notebook\footnote{Kluyver, T., Ragan-Kelley, B., Pérez, F., Granger, B., Bussonnier, M., Frederic, J., Kelley, K., Hamrick, J., Grout, J., Corlay, S., Ivanov, P., Avila, D., Abdalla, S., \& Willing, C. (2016). Jupyter Notebooks -- a publishing format for reproducible computational workflows. In F. Loizides \& B. Schmidt (a cura di), \textit{Positioning and Power in Academic Publishing: Players, Agents and Agendas} (pp. 87--90). IOS Press. \url{https://doi.org/10.3233/978-1-61499-649-1-87}. Documentazione ufficiale del progetto Jupyter: \url{https://jupyter.org}.}, che consente una sperimentazione interattiva e una facile visualizzazione dei risultati intermedi. Le librerie di base utilizzate appartengono allo stack scientifico standard di Python:
+Python è il linguaggio principale utilizzato per lo sviluppo del sistema, grazie alla sua sintassi semplice e alla disponibilità di librerie specializzate per il data science .
+Per lo sviluppo viene utilizzato l'ambiente Jupyter Notebook\footnote{Kluyver, T., Ragan-Kelley, B., Pérez, F., Granger, B., Bussonnier, M., Frederic, J., Kelley, K., Hamrick, J., Grout, J., Corlay, S., Ivanov, P., Avila, D., Abdalla, S., \& Willing, C. (2016). Jupyter Notebooks -- a publishing format for reproducible computational workflows. In F. Loizides \& B. Schmidt (a cura di), \textit{Positioning and Power in Academic Publishing: Players, Agents and Agendas} (pp. 87--90). IOS Press. \url{https://doi.org/10.3233/978-1-61499-649-1-87}. Documentazione ufficiale del progetto Jupyter: \url{https://jupyter.org}.}, che consente una sperimentazione interattiva e una facile visualizzazione dei risultati intermedi. Le librerie di base utilizzate appartengono allo stack scientifico standard di Python:
 
 \begin{itemize}
     \item \textbf{NumPy}\footnote{Harris, C. R., Millman, K. J., van der Walt, S. J., Gommers, R., Virtanen, P., Cournapeau, D., Wieser, E., Taylor, J., Berg, S., Smith, N. J., Kern, R., Picus, M., Hoyer, S., van Kerkwijk, M. H., Brett, M., Haldane, A., Fernández del Río, J., Wiebe, M., Peterson, P., Gérard-Marchant, P., Sheppard, K., Reddy, T., Weckesser, W., Abbasi, H., Gohlke, C., \& Oliphant, T. E. (2020). Array programming with NumPy. \textit{Nature}, 585(7825), 357--362. \url{https://doi.org/10.1038/s41586-020-2649-2}. Documentazione ufficiale: \url{https://numpy.org}.}: essenziale per la gestione delle operazioni matematiche e dei vettori multidimensionali. Viene utilizzato per la rappresentazione interna dei dati e per le operazioni di base necessarie all'addestramento dei modelli.
@@ -176,6 +177,7 @@ Il framework Qiskit\footnote{Qiskit contributors. (2019). \textit{Qiskit: An Ope
 L'utilizzo di Qiskit permette non solo di implementare i modelli quantistici, ma anche di eseguirli su backend differenti, che vanno dalla simulazione locale ideale ai computer quantistici reali, mantenendo la medesima interfaccia di programmazione basata sulle primitive \texttt{Sampler} ed \texttt{Estimator}. Questo permette di effettuare un ciclo di sviluppo e validazione dei modelli progressivo, come descritto nella Sezione~\ref{sec:strategia_valutazione}.
 
 \subsection{qiskit-machine-learning}
+\label{sec:qiskit_machine_learning}
 La libreria qiskit-machine-learning è la componente specifica per il machine learning quantistico costruita sopra il Qiskit SDK. Nel contesto di questo lavoro fornisce:
 \begin{itemize}
     \item Implementazioni di \textbf{QSVC} (\textit{Quantum Support Vector Classifier}) e \textbf{VQC} (\textit{Variational Quantum Classifier}), descritti nella Sezione~\ref{sec:circuiti_quantistici};
@@ -184,21 +186,22 @@ La libreria qiskit-machine-learning è la componente specifica per il machine le
     \item Interfacce verso ottimizzatori classici (ad esempio COBYLA e SPSA) per l'aggiornamento dei parametri variazionali dei modelli quantistici.
 \end{itemize}
 
-Questa libreria si basa sui concetti fondamentali presentati nel Qiskit SDK e permette di costruire modelli completamente quantistici senza dover gestire manualmente ogni singolo dettaglio a livello di porte logiche quantistiche, pur mantenendo un controllo esplicito sulla struttura del circuito.
+Questa libreria si basa sui principi fondamentali introdotti nel Qiskit SDK e permette di creare un modello quantistico completo senza la necessità di gestire manualmente tutti i dettagli a livello di porte logiche quantistiche, al tempo stesso garantendo un controllo preciso sulla struttura del circuito.
 
-\subsection{Ambiente Jupyter e workflow di sviluppo}
-Il workflow di sviluppo è strutturato in modo da permettere un facile riutilizzo del codice, una documentazione chiara e un confronto sistematico tra i modelli quantistici e classici. Le fasi principali, che rispecchiano i moduli architetturali descritti nella Sezione~\ref{sec:architettura_generale}, sono:
+\subsection{Ambiente Jupyter e Workflow di Sviluppo}
+Il workflow è organizzato in modo da consentire un facile riutilizzo del codice, una documentazione chiara e un confronto sistematico tra i modelli quantistici e classici.
+Le fasi principali, che rispecchiano i moduli architetturali descritti nella Sezione~\ref{sec:architettura_generale}, sono:
 
 \begin{enumerate}
     \item \textbf{Raccolta e preparazione dei dati}: selezione dei dataset, verifica dell'integrità e adattamento al formato richiesto dalle fasi successive.
     \item \textbf{Preprocessing}: normalizzazione, riduzione della dimensionalità e generazione dei vettori di input per i circuiti quantistici.
     \item \textbf{Costruzione del modello}: scelta della struttura del circuito quantistico (feature map e, per il VQC, ansatz variazionale).
     \item \textbf{Addestramento del modello}: utilizzo di ottimizzatori classici per l'addestramento dei parametri quantistici, oppure addestramento diretto per i modelli classici di confronto.
-    \item \textbf{Valutazione}: misurazione delle performance mediante le metriche descritte nella Sezione~\ref{sec:protocollo_sperimentale} e confronto sistematico con i modelli classici.
-    \item \textbf{Analisi dei risultati}: studio delle prestazioni di ciascun modello e discussione dei relativi vantaggi e limiti.
+    \item \textbf{Valutazione}: misurazione delle prestazioni utilizzando le metriche menzionate nella Sezione~\ref{sec:protocollo_sperimentale} e confronto sistematico con i modelli classici.
+    \item \textbf{Analisi dei risultati}: Analisi delle prestazioni di ogni modello e discussione dei punti di forza e degli eventuali limiti.
 \end{enumerate}
 
-Questo approccio modulare permette di testare rapidamente diverse configurazioni per identificare quelle più efficaci in base alle caratteristiche specifiche dei dati e del problema da risolvere, senza dover riscrivere le fasi comuni della pipeline.
+Con questo approccio modulare è infatti possibile velocemente valutare diverse configurazioni per trovare quelle più adatte in base alle peculiarità dei dati e del problema che si vuole risolvere senza dover riscrivere le fasi comuni della pipeline.
 
 \section{Dataset reali e preprocessing}
 \label{sec:dataset_preprocessing}
@@ -243,10 +246,11 @@ Il dataset \textit{Optical Recognition of Handwritten Digits}\footnote{Alpaydin,
     \item la dimensionalità è la più elevata tra i dataset selezionati, rendendo la riduzione dimensionale un passaggio essenziale piuttosto che opzionale.
 \end{itemize}
 
-La scelta congiunta dei tre dataset è motivata dal fatto che, pur condividendo il vincolo di feature numeriche e problemi di classificazione ben definiti, essi coprono uno spettro di condizioni sperimentali differenti: classificazione binaria e multiclasse, dimensionalità originaria bassa, media e alta, e domini applicativi diversi (diagnostica medica, chimica analitica, visione artificiale).
+La ragione per cui si scelgono congiuntamente i tre dataset sta nel fatto che sebbene questi dataset abbiano in comune la proprietà di avere dati numerici e problemi di classificazione ben formulati sono tuttavia distinti da diverse condizioni sperimentali, come la classificazione binaria e multiclasse, diverse dimensioni sia basse, medie che alte e diversi campi di applicazione (diagnosi mediche, chimica analitica, visione artificiale).
 
-\subsection{Preprocessing e normalizzazione}
-Le operazioni di preprocessing sono essenziali per adattare i dataset alle esigenze specifiche del machine learning quantistico. La normalizzazione dei dati è in particolare necessaria per garantire la stabilità dell'addestramento e la corretta interpretazione dei valori delle feature come angoli di rotazione nei circuiti quantistici.
+\subsection{Preelaborazione e Normalizzazione}
+Le fasi di pre-elaborazione sono necessarie per rendere i dataset compatibili con i requisiti dell'apprendimento quantistico.
+La normalizzazione dei dati è in particolare necessaria per garantire la stabilità dell'addestramento e la corretta interpretazione dei valori delle feature come angoli di rotazione nei circuiti quantistici.
 
 La normalizzazione è effettuata con l'approccio Min-Max, che trasforma i valori di ciascuna feature in un intervallo compreso tra 0 e 1:
 
@@ -254,27 +258,31 @@ La normalizzazione è effettuata con l'approccio Min-Max, che trasforma i valori
 x_{norm} = \frac{x - x_{min}}{x_{max} - x_{min}}
 \end{equation}
 
-Questa normalizzazione è necessaria perché le feature map quantistiche utilizzate impiegano porte di rotazione (RX, RY, RZ) i cui angoli dipendono dai valori delle feature in ingresso; un intervallo limitato e uniforme è pertanto opportuno per evitare rotazioni eccessive che comprometterebbero la distinguibilità degli stati quantistici codificati. La scelta di questo approccio, rispetto ad alternative come la standardizzazione (\textit{z-score}), è motivata da:
+Questa normalizzazione è necessaria perché le feature map quantistiche utilizzate impiegano porte di rotazione (RX, RY, RZ) i cui angoli dipendono dai valori delle feature in ingresso; un intervallo limitato e uniforme è pertanto opportuno per evitare rotazioni eccessive che comprometterebbero la distinguibilità degli stati quantistici codificati.
+La scelta di questa strategia rispetto ad altre strategie come la normalizzazione dello z-score è dovuta alle seguenti ragioni:
+
 \begin{itemize}
     \item facilità di interpretazione e implementazione;
-    \item compatibilità diretta con il formalismo delle porte di rotazione quantistiche, che operano naturalmente su intervalli angolari limitati;
-    \item maggiore stabilità dell'addestramento osservata empiricamente nelle fasi preliminari di sperimentazione;
-    \item rappresentazione uniforme dei dati, indipendentemente dalla scala originaria delle singole feature.
+    \item Compatibilità con la formalizzazione delle porte di rotazione quantistiche che funzionano intrinsecamente su un intervallo finito di angoli;
+    \item Un comportamento di addestramento più stabile che è stato osservato empiricamente nelle fasi iniziali degli esperimenti;
+    \item Coerenza nella rappresentazione dei dati indipendentemente dalla scala delle singole caratteristiche.
 \end{itemize}
 
 È opportuno segnalare che la normalizzazione Min-Max, calcolata sui valori minimo e massimo osservati, deve essere derivata esclusivamente dal set di addestramento e successivamente applicata al set di test, per evitare fenomeni di \textit{data leakage} che comprometterebbero la validità della valutazione (si veda la Sezione~\ref{sec:protocollo_sperimentale}).
 
 \subsection{Riduzione della dimensionalità tramite PCA}
 \label{sec:pca}
-Poiché il numero di qubit disponibili, sia in simulazione sia su hardware reale, è limitato, è necessario ridurre la dimensionalità dei dataset con dimensionalità originaria elevata mediante l'Analisi delle Componenti Principali (\textit{Principal Component Analysis}, PCA)\footnote{Jolliffe, I. T. (2002). \textit{Principal Component Analysis} (2nd ed.). Springer Series in Statistics. Springer.}. Questa riduzione è essenziale per:
+Poiché il numero di qubit disponibili, sia in simulazione sia su hardware reale, è limitato, è necessario ridurre la dimensionalità dei dataset con dimensionalità originaria elevata mediante l'Analisi delle Componenti Principali (\textit{Principal Component Analysis}, PCA)\footnote{Jolliffe, I. T. (2002). \textit{Principal Component Analysis} (2nd ed.). Springer Series in Statistics. Springer.}.
+La necessità di una tale riduzione nasce da:
 \begin{itemize}
-    \item adattare i dati alla struttura dei circuiti quantistici, in cui ogni feature è tipicamente codificata su un qubit dedicato;
-    \item mantenere i pattern essenziali presenti nei dati, minimizzando la perdita di informazione discriminante tra le classi;
-    \item ridurre i tempi di calcolo necessari per l'addestramento, sia in simulazione sia in esecuzione reale;
-    \item combinare le feature originarie in un numero ridotto di componenti rappresentabili su un numero contenuto di qubit.
+    \item l'adattamento dei dati al formato del circuito quantistico dove ogni caratteristica viene normalmente mappata su un qubit dedicato;
+    \item la garanzia della conservazione di schemi essenziali all'interno del set di dati garantendo al contempo una minima perdita di informazioni discriminanti tra le classi;
+    \item la riduzione del tempo di calcolo impiegato durante l'addestramento sia attraverso la simulazione che l'esecuzione effettiva;
+    \item la combinazione delle caratteristiche originali per formare un numero minore di componenti da memorizzare su un numero ridotto di qubit.
 \end{itemize}
 
-Il processo di riduzione si basa sull'analisi della varianza spiegata da ciascuna componente principale. Vengono selezionate le componenti che rappresentano complessivamente una percentuale significativa della varianza totale del dataset, individuata tramite l'analisi del grafico della varianza cumulata (\textit{scree plot}).
+Il processo di riduzione si basa sull'analisi della varianza spiegata da ciascuna componente principale.
+Vengono selezionate le componenti che rappresentano complessivamente una percentuale significativa della varianza totale del dataset, individuata tramite l'analisi del grafico della varianza cumulata (\textit{scree plot}).
 
 \begin{figure}[htbp]
     \centering
@@ -331,7 +339,7 @@ Il processo di riduzione si basa sull'analisi della varianza spiegata da ciascun
 
         \end{axis}
     \end{tikzpicture}
-    \caption{Varianza spiegata cumulata in funzione del numero di componenti principali per i dataset Breast Cancer Wisconsin, Wine e Digits. I marcatori cerchiati indicano il numero di componenti effettivamente selezionato per ciascun dataset (rispettivamente 4, 5 e 6).}
+    \caption{Varianza spiegata cumulata in funzione del numero di componenti principali per i dataset Breast Cancer Wisconsin, Wine e Digits. I marcatori cerchiati indicano il numero di componenti effettivamente selezionato per ciascun dataset (rispettivamente 4, 5 e 6). Questa analisi esplorativa è condotta sull'intero dataset (normalizzato con Min-Max, senza suddivisione train/test), a scopo puramente illustrativo della scelta del numero di componenti; i valori di varianza spiegata cumulata riportati in Tabella~\ref{tab:pca_componenti} del Capitolo~\ref{cap:implementazione_sperimentale_risultati}, leggermente diversi da quelli qui mostrati, sono invece calcolati sulla PCA effettivamente utilizzata dalla pipeline sperimentale, fittata esclusivamente sull'insieme di addestramento per evitare \textit{data leakage} (Sezione~\ref{sec:protocollo_sperimentale}).}
     \label{fig:pca_scree_plot}
 \end{figure}
 
@@ -393,11 +401,14 @@ Per il modello VQC, oltre alla feature map è necessario definire un \textit{ans
 \end{figure}
 
 \subsection{Modelli implementati: QSVC e VQC}
+\label{sec:modelli_implementati}
 I due modelli quantistici implementati e confrontati in questo lavoro seguono approcci concettualmente distinti alla classificazione quantistica:
 
 \begin{itemize}
-    \item \textbf{QSVC (Quantum Support Vector Classifier)}: utilizza la feature map per calcolare un kernel quantistico, ossia una misura di similarità tra coppie di campioni definita come sovrapposizione tra i corrispondenti stati quantistici codificati. Il kernel quantistico così ottenuto viene successivamente impiegato all'interno di un classificatore a support vector machine classico, secondo l'approccio proposto da Rebentrost et al.\footnote{Rebentrost, P., Mohseni, M., \& Lloyd, S. (2014). Quantum support vector machine for big data classification. \textit{Physical Review Letters}, 113(13), 130503. \url{https://doi.org/10.1103/PhysRevLett.113.130503}.} e da Havlíček et al.\footnote{Havlíček, V., Córcoles, A. D., Temme, K., Harrow, A. W., Kandala, A., Chow, J. M., \& Gambetta, J. M. (2019). Supervised learning with quantum-enhanced feature spaces. \textit{Nature}, 567(7747), 209--212. \url{https://doi.org/10.1038/s41586-019-0980-2}.}. In questo schema, la parte quantistica del modello è limitata al calcolo del kernel, mentre l'ottimizzazione del confine di decisione avviene con metodi classici consolidati.
-    \item \textbf{VQC (Variational Quantum Classifier)}: applica in sequenza la feature map e l'ansatz variazionale, misura lo stato risultante e interpreta l'esito della misura come predizione di classe. I parametri dell'ansatz sono aggiornati iterativamente da un ottimizzatore classico, secondo lo schema ibrido quantistico-classico tipico degli algoritmi variazionali. A differenza del QSVC, in questo caso l'intero processo di apprendimento, e non solo il calcolo del kernel, avviene tramite il circuito quantistico.
+    \item \textbf{QSVC (Quantum Support Vector Classifier)}: utilizza la feature map per calcolare un kernel quantistico, ossia una misura di similarità tra coppie di campioni definita come sovrapposizione tra i corrispondenti stati quantistici codificati. Il kernel quantistico così ottenuto viene successivamente impiegato all'interno di un classificatore a support vector machine classico, secondo l'approccio proposto da Rebentrost et al.\footnote{Rebentrost, P., Mohseni, M., \& Lloyd, S. (2014). Quantum support vector machine for big data classification. \textit{Physical Review Letters}, 113(13), 130503. \url{https://doi.org/10.1103/PhysRevLett.113.130503}.} e da Havlíček et al.\footnote{Havlíček, V., Córcoles, A. D., Temme, K., Harrow, A. W., Kandala, A., Chow, J. M., \& Gambetta, J. M. (2019). Supervised learning with quantum-enhanced feature spaces. \textit{Nature}, 567(7747), 209--212. \url{https://doi.org/10.1038/s41586-019-0980-2}.}.
+    In questo approccio la componente quantistica del modello contribuisce solamente al calcolo del kernel mentre l'ottimizzazione del confine decisionale viene eseguita utilizzando tecniche classiche.
+    \item \textbf{VQC (Variational Quantum Classifier)}: Il VQC utilizza in sequenza la mappa delle caratteristiche e l'ansatz variazionale, seguito dalla misurazione dello stato e la classificazione dello stato misurato. I parametri dell'ansatz vengono aggiornati utilizzando un ottimizzatore classico secondo l'approccio convenzionale ibrido quantistico-classico al algoritmo variazionale.
+    A differenza del QSVC, in questo caso l'intero processo di apprendimento, e non solo il calcolo del kernel, avviene tramite il circuito quantistico.
 \end{itemize}
 
 Il confronto tra questi due modelli, e tra entrambi e le baseline classiche descritte nella Sezione~\ref{sec:workflow_complessivo}, costituisce il nucleo della valutazione sperimentale presentata nel Capitolo~\ref{cap:implementazione_sperimentale_risultati}.
@@ -412,12 +423,13 @@ L'esecuzione dei modelli quantistici può avvenire in due ambienti distinti: la 
 La simulazione locale utilizza i simulatori forniti dal Qiskit SDK e da Qiskit Aer, che permettono di testare i modelli quantistici senza accedere a un dispositivo quantistico reale.
 
 \subsubsection{Primitive di riferimento (StatevectorSampler)}
-\texttt{StatevectorSampler} è una classe della libreria Qiskit che simula il comportamento di un circuito quantistico calcolando il vettore di stato completo per produrre campioni di misura, eseguendo simulazioni esatte prive di rumore. Questo approccio è particolarmente utile per:
+\texttt{StatevectorSampler} è una classe della libreria Qiskit che simula il comportamento di un circuito quantistico calcolando il vettore di stato completo per produrre campioni di misura, eseguendo simulazioni esatte prive di rumore.
+Questo approccio è particolarmente utile per le seguenti applicazioni:
 \begin{itemize}
-    \item test su un numero contenuto di qubit (indicativamente fino a 8-10 qubit, oltre i quali la simulazione statevector diventa rapidamente onerosa);
-    \item analisi dettagliata e comprensione del comportamento ideale del modello;
-    \item verifica della correttezza logica dei circuiti quantistici implementati;
-    \item validazione delle implementazioni intermedie, prima di procedere a simulazioni più realistiche o all'esecuzione su hardware reale.
+    \item Test su un numero limitato di qubit (fino a 8-10 qubit. La simulazione dello stato vettoriale diventa computazionalmente difficile per un numero maggiore di qubit);
+    \item Comprensione e studio dettagliato delle prestazioni previste del modello;
+    \item Garantire la correttezza logica dei circuiti implementati;
+    \item Validazione di versioni intermedie prima di simulazioni effettive o di una reale implementazione su hardware.
 \end{itemize}
 
 \texttt{StatevectorSampler} è ideale per lo sviluppo iniziale poiché esegue i circuiti senza rumore né decoerenza, restituendo risultati precisi e riproducibili, ed è adatto all'analisi dell'intero spazio di stato quantistico con un costo computazionale contenuto per il numero ridotto di qubit utilizzato in questo lavoro.
@@ -517,5 +529,3 @@ Per garantire la riproducibilità dei risultati, a tutte le componenti stocastic
 In questo capitolo è stata presentata l'architettura complessiva del sistema, articolata in moduli indipendenti per l'acquisizione dei dati, il preprocessing, la codifica quantistica, l'addestramento, l'esecuzione e la valutazione. È stato descritto lo stack tecnologico adottato, incentrato su Python, Scikit-learn e Qiskit, e containerizzato tramite Docker per garantire la riproducibilità dell'ambiente sperimentale. Sono stati presentati i tre dataset reali selezionati e le relative fasi di preprocessing, con particolare attenzione alla normalizzazione e alla riduzione dimensionale tramite PCA. Sono stati inoltre descritti, a livello metodologico, i principi di progettazione delle feature map e degli ansatz variazionali alla base dei modelli QSVC e VQC, l'ambiente di esecuzione distinto tra simulazione e hardware reale, e il protocollo sperimentale adottato per garantire un confronto equo tra modelli classici e quantistici.
 
 Il capitolo seguente (Capitolo~\ref{cap:implementazione_sperimentale_risultati}, Implementazione Sperimentale e Risultati) descrive in dettaglio l'implementazione software di quanto qui presentato, incluso il codice sorgente dei moduli architetturali, la configurazione completa dell'ambiente Docker, e riporta ed analizza i risultati sperimentali ottenuti applicando la metodologia descritta ai tre dataset selezionati.
-
-
