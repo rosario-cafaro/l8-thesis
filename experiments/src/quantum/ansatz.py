@@ -1,5 +1,5 @@
 """Costruzione dell'ansatz variazionale utilizzato dal VQC (Sezione "Modello
-VQC", Capitolo 7)."""
+VQC", Capitolo 4)."""
 
 from qiskit.circuit.library import real_amplitudes
 

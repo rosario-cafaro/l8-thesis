@@ -1,5 +1,5 @@
 """Acquisizione e validazione preliminare dei dataset (Sezione "Acquisizione
-e validazione dei dati", Capitolo 7)."""
+e validazione dei dati", Capitolo 4)."""
 
 from sklearn.datasets import load_breast_cancer, load_wine, load_digits
 import pandas as pd

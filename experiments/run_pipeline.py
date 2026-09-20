@@ -1,7 +1,7 @@
 """Script di orchestrazione della pipeline sperimentale completa.
 
 Esegue, per uno o piu' dataset tra `breast_cancer`, `wine` e
-`digits`, l'intera sequenza descritta nel Capitolo 7 (acquisizione,
+`digits`, l'intera sequenza descritta nel Capitolo 4 (acquisizione,
 preprocessing, addestramento dei modelli classici di baseline e dei
 modelli quantistici QSVC/VQC in simulazione ideale, valutazione) e
 salva i risultati in formato tabellare in `results/tables` e le
@@ -255,7 +255,7 @@ def run_optimizer_comparison() -> None:
 def run_aggregate() -> None:
     """Aggrega le tabelle disponibili in `results/tables` (indipendentemente
     da quali dataset siano già stati eseguiti) nelle tabelle e figure
-    comparative del Capitolo 7, sezione "Analisi comparativa
+    comparative del Capitolo 4, sezione "Analisi comparativa
     trasversale": confronto globale
     dell'accuratezza e curva di convergenza del VQC. I dataset non ancora
     eseguiti vengono semplicemente omessi, così da poter rilanciare questa

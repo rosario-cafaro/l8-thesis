@@ -1,5 +1,5 @@
 """Normalizzazione Min-Max e riduzione dimensionale tramite PCA (Sezione
-"Preprocessing: normalizzazione Min-Max e PCA", Capitolo 7)."""
+"Preprocessing: normalizzazione Min-Max e PCA", Capitolo 4)."""
 
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.decomposition import PCA
@@ -31,7 +31,7 @@ def stratified_subsample(X, y, n_samples: int, random_state: int = 42):
 
     Usata per ridurre la dimensione di training/test set nelle modalità
     di esecuzione più costose (`noisy_simulation`, `real_hardware`,
-    Sezione "Limiti dello studio e minacce alla validità", Capitolo 7):
+    Sezione "Limiti dello studio e minacce alla validità", Capitolo 4):
     un semplice troncamento posizionale (`X[:n_samples]`)
     non garantisce la stessa distribuzione di classe dell'insieme
     originario, anche quando quest'ultimo è stato mescolato da uno split

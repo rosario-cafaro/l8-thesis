@@ -1,5 +1,5 @@
 """Metriche di valutazione, comuni a modelli classici e quantistici
-(Sezione "Modulo di valutazione", Capitolo 7)."""
+(Sezione "Modulo di valutazione", Capitolo 4)."""
 
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score,

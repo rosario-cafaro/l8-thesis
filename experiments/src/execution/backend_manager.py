@@ -1,6 +1,6 @@
 """Gestione dei backend di esecuzione: simulatore ideale, simulatore con
 rumore e hardware quantistico reale (Sezione "Gestione dei backend di
-esecuzione", Capitolo 7)."""
+esecuzione", Capitolo 4)."""
 
 import os
 
@@ -16,7 +16,7 @@ class CountingSampler:
     valori numerici legata al circuito conta come un circuito eseguito),
     utile per popolare la colonna "N. circuiti eseguiti" della Tabella
     costo_computazionale (Sezione "Costo computazionale e tempi di
-    esecuzione", Capitolo 7). Delega ogni altra operazione al
+    esecuzione", Capitolo 4). Delega ogni altra operazione al
     sampler avvolto, di cui replica l'interfaccia (`run`)."""
 
     def __init__(self, sampler):
@@ -40,7 +40,7 @@ def get_sampler(mode: str, noise_model: NoiseModel = None,
     `seed` non viene fissato, tale generatore non è seedato e due
     esecuzioni identiche restituiscono stime del kernel/della funzione
     di costo diverse, compromettendo la riproducibilità (Sezione
-    "Riproducibilità degli esperimenti", Capitolo 6). Non è invece
+    "Riproducibilità degli esperimenti", Capitolo 3). Non è invece
     possibile fissare un seed per l'hardware reale, per sua natura
     non deterministico.
     """
@@ -60,7 +60,7 @@ def get_sampler(mode: str, noise_model: NoiseModel = None,
         # Token e channel vengono letti dalle variabili d'ambiente
         # QISKIT_IBM_TOKEN/QISKIT_IBM_CHANNEL dal file .env,
         # per coerenza con quanto descritto nella Sezione "Struttura del
-        # progetto e ambiente containerizzato" (Capitolo 7).
+        # progetto e ambiente containerizzato" (Capitolo 4).
         service = QiskitRuntimeService(
             channel=os.environ.get("QISKIT_IBM_CHANNEL", "ibm_quantum_platform"),
             token=os.environ.get("QISKIT_IBM_TOKEN"),

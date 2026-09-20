@@ -1,5 +1,5 @@
 """Modelli classici di baseline (Sezione "Modelli classici di baseline",
-Capitolo 7)."""
+Capitolo 4)."""
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC

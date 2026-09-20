@@ -1,6 +1,6 @@
 """Funzioni di plotting condivise da `run_pipeline.py` e dai notebook
 (si vedano le sezioni "Configurazione sperimentale", "Risultati:
-Wine" e "Analisi comparativa trasversale" del Capitolo 7)"""
+Wine" e "Analisi comparativa trasversale" del Capitolo 4)"""
 
 from __future__ import annotations
 

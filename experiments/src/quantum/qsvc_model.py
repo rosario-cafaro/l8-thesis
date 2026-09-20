@@ -1,5 +1,5 @@
 """Modello QSVC basato su kernel quantistico a fedeltà (Sezione "Modello
-QSVC", Capitolo 7)."""
+QSVC", Capitolo 4)."""
 
 from qiskit_machine_learning.kernels import FidelityQuantumKernel
 from qiskit_machine_learning.algorithms import QSVC
@@ -29,7 +29,7 @@ def build_qsvc(feature_map, sampler, pass_manager=None, max_circuits_per_job=Non
     l'intero training set, non solo su AerSampler (simulazione con
     rumore), ma anche su StatevectorSampler (simulazione ideale) per
     training set sufficientemente grandi (si veda il dataset Digits,
-    Sezione "Limiti dello studio e minacce alla validita'", Capitolo 7).
+    Sezione "Limiti dello studio e minacce alla validita'", Capitolo 4).
     Impostando max_circuits_per_job la chiamata viene suddivisa in piu'
     chiamate piu' piccole (una per "chunk" di coppie), riducendo
     drasticamente il picco di memoria per chiamata a fronte di un

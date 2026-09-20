@@ -4,9 +4,6 @@ data/processed/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 
-# results/tables e results/figures NON sono ignorati: sono la provenienza
-# dei numeri e delle figure riportati nel Capitolo 7 e vengono versionati.
-
 # notebook checkpoints
 .ipynb_checkpoints/
 **/.ipynb_checkpoints/

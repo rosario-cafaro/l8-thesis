@@ -1,5 +1,5 @@
 """Modello VQC: feature map + ansatz variazionale (Sezione "Modello VQC",
-Capitolo 7)."""
+Capitolo 4)."""
 
 from qiskit_machine_learning.optimizers import COBYLA
 from qiskit_machine_learning.algorithms import VQC
@@ -15,7 +15,7 @@ def build_vqc(feature_map, ansatz, sampler, maxiter: int = 100, callback=None,
     questo generatore globale prima della costruzione, in modo che
     l'inizializzazione (e quindi l'intera traiettoria di ottimizzazione)
     sia riproducibile (Sezione "Riproducibilità degli esperimenti",
-    Capitolo 6).
+    Capitolo 3).
     """
     if random_state is not None:
         algorithm_globals.random_seed = random_state

@@ -1,5 +1,5 @@
 """Costruzione della feature map quantistica (Sezione "Codifica quantistica:
-feature map", Capitolo 7)."""
+feature map", Capitolo 4)."""
 
 from qiskit.circuit.library import zz_feature_map
 
@@ -11,7 +11,7 @@ def build_feature_map(n_qubits: int, reps: int = 2,
     Il numero di qubit coincide con il numero di componenti
     principali selezionate in fase di preprocessing
     (si veda la sezione "Riduzione della dimensionalità tramite PCA",
-    Capitolo 6).
+    Capitolo 3).
 
     Usa la funzione `zz_feature_map` anziché la classe `ZZFeatureMap`
     (deprecata a partire da Qiskit 2.1, rimossa in Qiskit 3.0).

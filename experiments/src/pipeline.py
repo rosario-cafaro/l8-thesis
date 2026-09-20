@@ -3,7 +3,7 @@ un dataset): costruiscono il modello a partire dai moduli di
 `src.classical`/`src.quantum`, lo addestrano, lo valutano e ne
 misurano il tempo di esecuzione. Include inoltre le funzioni di
 aggregazione dei risultati di più dataset/modelli nelle tabelle e
-figure comparative del Capitolo 7 (sezione "Analisi comparativa
+figure comparative del Capitolo 4 (sezione "Analisi comparativa
 trasversale"): `aggregate_ideal_results` e `update_degradation_figure`.
 
 Vengono riutilizzate sia da `run_pipeline.py` (orchestratore
@@ -250,7 +250,7 @@ def aggregate_ideal_results(combined: pd.DataFrame, tables_dir: Path, figures_di
                              model_order: list[str] | None = None) -> pd.DataFrame:
     """Aggrega, in un'unica tabella e figura, i risultati in simulazione ideale di più
     dataset e modelli (Tabella/Figura `confronto_globale_accuratezza`, sezione "Confronto
-    dell'accuratezza tra dataset e modelli", Capitolo 7).
+    dell'accuratezza tra dataset e modelli", Capitolo 4).
 
     `combined` deve avere almeno le colonne `dataset`, `model` e `accuracy` (una riga per
     coppia dataset/modello); colonne aggiuntive (`precision`, `recall`, `f1_score`,
@@ -282,7 +282,7 @@ def aggregate_ideal_results(combined: pd.DataFrame, tables_dir: Path, figures_di
 def update_degradation_figure(combined_ideal: pd.DataFrame, tables_dir: Path,
                                figures_dir: Path) -> bool:
     """Rigenera la Figura `degrado_performance` (sezione "Effetto del rumore e del
-    passaggio a hardware reale", Capitolo 7) a partire dai risultati ideali già aggregati
+    passaggio a hardware reale", Capitolo 4) a partire dai risultati ideali già aggregati
     (`combined_ideal`, con colonne `dataset`, `model`, `accuracy`; si veda
     `aggregate_ideal_results`) e, se presenti in `tables_dir`, dalle tabelle
     `results_noisy_simulation.csv`/`results_real_hardware.csv` prodotte dal notebook
