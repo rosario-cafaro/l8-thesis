@@ -13,7 +13,7 @@ L'architettura complessiva può essere suddivisa nei seguenti moduli logici:
 \begin{enumerate}
     \item \textbf{Modulo di acquisizione dei dati}: si occupa del caricamento dei dataset dalle librerie standard (Scikit-learn) e dalla loro validazione preliminare (verifica di valori mancanti, tipi di dato, bilanciamento delle classi).
     \item \textbf{Modulo di preprocessing}: applica la normalizzazione Min-Max e, dove necessario, la riduzione della dimensionalità tramite Analisi delle Componenti Principali (PCA), producendo in uscita un insieme di feature compatibile sia con i classificatori classici sia con il numero di qubit disponibili per i circuiti quantistici.
-    \item \textbf{Modulo di codifica quantistica}: Converte i vettori dei dati preelaborati in circuiti quantistici parametrizzati (mappa delle caratteristiche) ,in accordo con i due metodi indicati nella Sezione~\ref{sec:circuiti_quantistici}.
+    \item \textbf{Modulo di codifica quantistica}: Converte i vettori dei dati pre-elaborati in circuiti quantistici parametrizzati (mappa delle caratteristiche), in accordo con i due metodi indicati nella Sezione~\ref{sec:circuiti_quantistici}.
     \item \textbf{Modulo di addestramento}: Prevede sia algoritmi classici forniti da Scikit-learn per avere un punto di riferimento, che modelli quantistici come QSVC e VQC costruiti tramite qiskit-machine-learning.
     \item \textbf{Modulo di esecuzione}: Gestisce il trasferimento dei circuiti sul back end scelto che può essere sia un simulatore locale senza rumore, sia un simulatore con rumore, sia un dispositivo quantistico reale disponibile sulla IBM Quantum Platform.
     \item \textbf{Modulo di valutazione}: Calcola le metriche delle prestazioni (Sezione~\ref{sec:protocollo_sperimentale}) e genera il confronto tra i risultati ottenuti dai modelli classici e quantistici.
@@ -68,7 +68,7 @@ Questa organizzazione modulare riflette anche la struttura del codice sorgente e
 L'intero sistema si basa su un workflow strutturato che permette di addestrare e valutare modelli di machine learning quantistico utilizzando il framework Qiskit\footnote{Qiskit contributors. (2019). \textit{Qiskit: An Open-Source Framework for Quantum Computing}. Zenodo. \url{https://doi.org/10.5281/zenodo.2562111}.}. Il workflow complessivo comprende diverse fasi: raccolta e preparazione dei dati, preprocessing, addestramento del modello quantistico, valutazione delle performance e confronto con modelli classici. Tutte le fasi sono implementate utilizzando Python e librerie standard del data science, eseguite all'interno di un ambiente containerizzato per garantire la riproducibilità dei risultati.
 
 \subsection{Python e librerie scientifiche di base}
-Python è il linguaggio principale utilizzato per lo sviluppo del sistema, grazie alla sua sintassi semplice e alla disponibilità di librerie specializzate per il data science .
+Python è il linguaggio principale utilizzato per lo sviluppo del sistema, grazie alla sua sintassi semplice e alla disponibilità di librerie specializzate per la data science.
 Per lo sviluppo viene utilizzato l'ambiente Jupyter Notebook\footnote{Kluyver, T., Ragan-Kelley, B., Pérez, F., Granger, B., Bussonnier, M., Frederic, J., Kelley, K., Hamrick, J., Grout, J., Corlay, S., Ivanov, P., Avila, D., Abdalla, S., \& Willing, C. (2016). Jupyter Notebooks -- a publishing format for reproducible computational workflows. In F. Loizides \& B. Schmidt (a cura di), \textit{Positioning and Power in Academic Publishing: Players, Agents and Agendas} (pp. 87--90). IOS Press. \url{https://doi.org/10.3233/978-1-61499-649-1-87}. Documentazione ufficiale del progetto Jupyter: \url{https://jupyter.org}.}, che consente una sperimentazione interattiva e una facile visualizzazione dei risultati intermedi. Le librerie di base utilizzate appartengono allo stack scientifico standard di Python:
 
 \begin{itemize}
@@ -201,7 +201,7 @@ Le fasi principali, che rispecchiano i moduli architetturali descritti nella Sez
     \item \textbf{Analisi dei risultati}: Analisi delle prestazioni di ogni modello e discussione dei punti di forza e degli eventuali limiti.
 \end{enumerate}
 
-Con questo approccio modulare è infatti possibile velocemente valutare diverse configurazioni per trovare quelle più adatte in base alle peculiarità dei dati e del problema che si vuole risolvere senza dover riscrivere le fasi comuni della pipeline.
+Con questo approccio modulare è infatti possibile valutare rapidamente diverse configurazioni per trovare quelle più adatte in base alle peculiarità dei dati e del problema che si vuole risolvere senza dover riscrivere le fasi comuni della pipeline.
 
 \section{Dataset reali e preprocessing}
 \label{sec:dataset_preprocessing}
@@ -246,7 +246,7 @@ Il dataset \textit{Optical Recognition of Handwritten Digits}\footnote{Alpaydin,
     \item la dimensionalità è la più elevata tra i dataset selezionati, rendendo la riduzione dimensionale un passaggio essenziale piuttosto che opzionale.
 \end{itemize}
 
-La ragione per cui si scelgono congiuntamente i tre dataset sta nel fatto che sebbene questi dataset abbiano in comune la proprietà di avere dati numerici e problemi di classificazione ben formulati sono tuttavia distinti da diverse condizioni sperimentali, come la classificazione binaria e multiclasse, diverse dimensioni sia basse, medie che alte e diversi campi di applicazione (diagnosi mediche, chimica analitica, visione artificiale).
+I tre dataset sono stati scelti congiuntamente perché, pur condividendo la natura numerica delle feature e problemi di classificazione ben formulati, si distinguono per condizioni sperimentali diverse: classificazione binaria e multiclasse, dimensionalità bassa, media e alta, e campi di applicazione differenti (diagnosi mediche, chimica analitica, visione artificiale).
 
 \subsection{Preelaborazione e Normalizzazione}
 Le fasi di pre-elaborazione sono necessarie per rendere i dataset compatibili con i requisiti dell'apprendimento quantistico.
@@ -443,7 +443,7 @@ Questo approccio è particolarmente utile per le seguenti applicazioni:
     \item \textbf{Matrix product state}: metodo di simulazione approssimata adatto a circuiti con entanglement limitato, utile per numeri di qubit maggiori.
 \end{itemize}
 
-Nel presente lavoro, l'utilizzo di Qiskit Aer con modelli di rumore configurabili (ottenuti, ad esempio, a partire dalle caratteristiche di calibrazione di dispositivi reali) permette di testare i modelli quantistici in condizioni intermedie tra la simulazione ideale e l'esecuzione su hardware reale, valutando sia la performance ideale sia una stima della performance realistica prima di impegnare risorse computazionali sul hardware effettivo.
+Nel presente lavoro, l'utilizzo di Qiskit Aer con modelli di rumore configurabili (ottenuti, ad esempio, a partire dalle caratteristiche di calibrazione di dispositivi reali) permette di testare i modelli quantistici in condizioni intermedie tra la simulazione ideale e l'esecuzione su hardware reale, valutando sia la performance ideale sia una stima della performance realistica prima di impegnare risorse computazionali sull'hardware effettivo.
 
 \subsection{Esecuzione su hardware quantistico reale}
 \label{sec:esecuzione_hardware_reale}
@@ -492,7 +492,7 @@ La scelta dell'ambiente di esecuzione in ciascuna fase della sperimentazione tie
 \subsubsection{Considerazioni tecniche}
 \begin{itemize}
     \item \textbf{Numero di qubit disponibili}: deve essere compatibile con il numero di componenti principali selezionate per ciascun dataset (Sezione~\ref{sec:pca});
-    \item \textbf{Qualità del hardware}: una maggiore fedeltà del dispositivo, misurata ad esempio tramite i parametri di calibrazione pubblicati da IBM, tende a produrre risultati più vicini alla simulazione ideale;
+    \item \textbf{Qualità dell'hardware}: una maggiore fedeltà del dispositivo, misurata ad esempio tramite i parametri di calibrazione pubblicati da IBM, tende a produrre risultati più vicini alla simulazione ideale;
     \item \textbf{Disponibilità temporale}: il tempo di esecuzione atteso, incluso quello di attesa in coda, deve essere compatibile con la pianificazione temporale del lavoro di tesi;
     \item \textbf{Costi di esecuzione}: il budget disponibile per l'utilizzo di risorse hardware reali deve essere gestito selezionando un sottoinsieme rappresentativo di esperimenti, anziché ripetere sull'hardware reale l'intera griglia di configurazioni testate in simulazione.
 \end{itemize}

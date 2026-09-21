@@ -73,7 +73,7 @@ Tale interazione viene formalizzata matematicamente mediante il Processo Decisio
     \item $\mathcal{A}$ definisce lo spazio delle azioni consentite all'agente in ciascuno stato.
     \item $P(s' \mid s, a) = \mathbb{P}(S_{t+1} = s' \mid S_t = s, A_t = a)$ definisce la funzione di transizione di probabilità, ovvero la probabilità di transire allo stato $s'$ partendo dallo stato $s$ dopo aver eseguito l'azione $a$.
     \item $R(s, a) = \mathbb{E}[R_{t+1} \mid S_t = s, A_t = a]$ indica la funzione di ricompensa attesa immediata che l'agente riceve come feedback dall'ambiente dopo aver eseguito l'azione $a$ nello stato $s$.
-    \item $\gamma \in [0, 1)$ rappresenta il fattore di sconto (\textit{discount factor}), che determina l'importance geometricamente decrescente delle ricompense future rispetto a quelle immediate.
+    \item $\gamma \in [0, 1)$ rappresenta il fattore di sconto (\textit{discount factor}), che determina l'importanza geometricamente decrescente delle ricompense future rispetto a quelle immediate.
 \end{itemize}
 
 A ogni istante temporale discreto $t$, l'agente percepisce lo stato corrente $s_t \in \mathcal{S}$, seleziona ed esegue un'azione $a_t \in \mathcal{A}$ in base alla propria politica $\pi(a_t \mid s_t)$, transita allo stato successivo $s_{t+1} \sim P(\cdot \mid s_t, a_t)$ e riceve un segnale di feedback numerico immediato $R_{t+1}$.
@@ -177,8 +177,8 @@ I dataset del mondo reale presentano intrinsecamente problematiche di rumore, di
 
 \subsection{Normalizzazione e Ridimensionamento delle Caratteristiche}
 
-Gli algoritmi basati sulla distanza (come SVM, $k$-NN) e gli algoritmi basati sull'ottimizzazione (come la Regressione Logistica) sono estremamente sensibili alle incongruenze di scala nelle variabili. Pertanto la scelta del metodo di ridimensionamento diventa estremamente importante in quanto una scelta sbagliata può effettivamente influenzare l'efficienza e la coerenza dell'algoritmo.
-L'encoding diventa distorto per gli algoritmi quantistici nel caso di un ridimensionamento sbagliato.
+Gli algoritmi basati sulla distanza (SVM, $k$-NN) e gli algoritmi basati sull'ottimizzazione (Regressione Logistica) sono molto sensibili alle differenze di scala nelle variabili. Per questo la scelta del metodo di ridimensionamento è fondamentale in quanto quanto una scelta sbagliata può influenzare significativamente l'efficienza e la coerenza dell'algoritmo.
+Nel caso degli algoritmi quantistici, inoltre, un ridimensionamento sbagliato distorce l'encoding dei dati.
 
 \begin{itemize}
     \item \textbf{Standardizzazione (Z-score Scaling):} Centra la variabile a media nulla e varianza unitaria ($\mu = 0$, $\sigma^2 = 1$):
@@ -206,7 +206,7 @@ Scegliendo i primi $k$ autovettori associati ai $k$ autovalori maggiori definiam
 \section{Algoritmi di Classificazione Classica di Benchmark}
 \label{sec:algoritmi_classificazione_classica}
 
-In questa sezione vengono introdotti i tre algoritmi selezionati come strumenti di confronto per un'analisi comparativa.La scelta di questi modelli in particolare non è arbitraria e le ragioni che la sostengono includono diversi fattori storici e pratici.
+In questa sezione vengono introdotti i tre algoritmi selezionati come strumenti di confronto per un'analisi comparativa. La scelta di questi modelli in particolare non è arbitraria e le ragioni che la sostengono includono diversi fattori storici e pratici.
 
 \subsection{Logistic Regression}
 La Logistic Regression è un modello probabilistico lineare utilizzato per problemi di classificazione binaria. La probabilità a posteriori che un esempio $\mathbf{x}$ appartenga alla classe positiva $y=1$ è modellata tramite la funzione sigmoidale (o operatore logistico) $\sigma(z)$:
@@ -234,7 +234,7 @@ La minimizzazione della perdita equivale a minimizzare la Cross-Entropy negativa
 \label{sec:svm_classica}
 Le Support Vector Machines rappresentano uno dei modelli di classificazione a margine massimo più rigorosi dal punto di vista teorico. Questo modello è stato introdotto da Vladimir Vapnik durante la sua ricerca nel campo della teoria statistica dell'apprendimento negli anni '60, con una formalizzazione completa negli anni '90.
 
-La formulazione teorica ha profonde basi matematiche: il problema di ottimizzazione è fondato su principi di programmazione convessa e ha una soluzione unica grazie al teorema della dualità. Il concetto di margine massimo fornisce un interpretaione geometrica chiara delle capacità generalizzative dei modelli: il margine più ampio tra le classi indica una maggiore separabilità dei dati.
+La formulazione teorica ha profonde basi matematiche: il problema di ottimizzazione è fondato su principi di programmazione convessa e ha una soluzione unica grazie al teorema della dualità. Il concetto di margine massimo fornisce un'interpretazione geometrica chiara delle capacità generalizzative dei modelli: il margine più ampio tra le classi indica una maggiore separabilità dei dati.
 
 \subsubsection{Formulazione Primal e Margine Ampio}
 Dato un set di addestramento linearmente separabile con $y_i \in \{-1, +1\}$, l'obiettivo è individuare un iperpiano di decisione $\mathbf{w}^T \mathbf{x} + b = 0$ che separi le classi massimizzando il margine geometrico $\frac{2}{\|\mathbf{w}\|_2}$.
@@ -287,17 +287,17 @@ K_{\text{RBF}}(\mathbf{x}_i, \mathbf{x}_j) = \exp\left( -\gamma \|\mathbf{x}_i -
 \end{figure}
 
 \subsection{Random Forest}
-Il Random Forest\footnote{Breiman, L. (2001). Random Forests. \textit{Machine Learning}, 45(1), 5-32.} rappresenta uno dei primi e più importanti esempi di algoritmi di apprendimento d'insieme (ensemble learning). Questo approccio è stato introdotto da Leo Breiman e Adele Cutler nel 2001, basandosi su principi già consolidati di bagging e di aggregazione di modelli predittivi.
+Il Random Forest\footnote{Breiman, L. (2001). Random Forests. \textit{Machine Learning}, 45(1), 5-32.} rappresenta dei più importanti esempi di algoritmi di apprendimento d'insieme (ensemble learning). Questo approccio è stato introdotto da Leo Breiman e Adele Cutler nel 2001, basandosi su principi già consolidati di \textit{Bootstrap Aggregating} (noto comunemente come \textit{bagging}).
 
-L'approccio dell'ensemble si basa sull'idea che combinando modelli diversi combinati si possa ottenere un miglioramento della capacità predittiva rispetto a una singola classificazione. La particolare combinazione di bootstrap aggregating e decision tree ha dimostrato una notevole robustezza e un'elevata capacità di generalizzazione, rendendo il Random Forest uno strumento standard ampiamente adottato nell'ambiente ML.
+L'approccio dell'ensemble si basa sull'idea che combinando modelli diversi si possa ottenere un miglioramento della capacità predittiva rispetto a quella di un singolo modello. L'unione di \textit{bagging} e alberi decisionali ha dimostrato una notevole robustezza e un'elevata capacità di generalizzazione, rendendo il Random Forest uno strumento standard ampiamente adottato in ambito ML.
 
 \subsubsection{Algoritmo di Costruzione}
-Per un ensemble composto da $B$ alberi di decisione:
+Per un ensemble composto da $B$ alberi decisionali:
 \begin{enumerate}
     \item Per ogni albero $b = 1, \dots, B$:
     \begin{enumerate}
         \item Si estrae un campione bootstrap $\mathcal{D}_b$ di dimensione $n$ dal dataset originale $\mathcal{D}$ tramite campionamento con reinserimento.
-        \item Si addestra un albero di decisione $T_b$ sul campione $\mathcal{D}_b$. In ogni nodo dell'albero, la scelta della migliore scissione (\textit{split}) non avviene su tutte le $d$ feature, ma su un sottoinsieme casuale di dimensione $m \ll d$ (tipicamente $m = \lfloor\sqrt{d}\rfloor$).
+        \item Si addestra un albero decisionale $T_b$ sul campione $\mathcal{D}_b$. In ogni nodo dell'albero, la scelta della migliore scissione (\textit{split}) non avviene su tutte le $d$ feature, ma su un sottoinsieme casuale di dimensione $m \ll d$ (tipicamente $m = \lfloor\sqrt{d}\rfloor$).
         \item L'albero viene fatto crescere fino a una profondità massima $d_{\max}$ o fino al raggiungimento di un numero minimo di campioni per foglia, senza applicare potatura (\textit{pruning}).
     \end{enumerate}
 \end{enumerate}
@@ -308,7 +308,7 @@ La regola di decisione per un nuovo campione $\mathbf{x}$ nel caso della classif
 \end{equation}
 
 \subsubsection{Misure di Impurità}
-La scissione nei nodi degli alberi di decisione avviene minimizzando una misura di impurità. Le metriche più comunemente impiegate sono:
+La scissione nei nodi degli alberi decisionali avviene minimizzando una misura di impurità. Le metriche più comunemente impiegate sono:
 \begin{itemize}
     \item \textbf{Indice di Impurità di Gini:}
     \begin{equation}
