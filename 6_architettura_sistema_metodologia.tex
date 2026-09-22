@@ -502,7 +502,7 @@ Il processo di valutazione complessivo è strutturato in tre fasi, corrispondent
 \section{Protocollo sperimentale e metriche di valutazione}
 \label{sec:protocollo_sperimentale}
 
-Per garantire un confronto equo e statisticamente significativo tra i modelli classici e quantistici, è stato definito un protocollo sperimentale comune, applicato in modo identico a tutte le configurazioni testate.
+Per rendere confrontabili i modelli classici e quantistici, è stato definito un protocollo sperimentale comune (stessi dati in ingresso e stesse metriche di valutazione), applicato in modo identico a tutte le configurazioni testate. Il protocollo non prevede invece lo stesso sforzo di ottimizzazione degli iperparametri per le due famiglie di modelli, aspetto di cui si tiene conto nella formulazione delle conclusioni (Sezione~\ref{sec:limiti_studio}).
 
 \subsection{Suddivisione train/test e validazione}
 Ciascun dataset viene suddiviso in un insieme di addestramento e un insieme di test, mantenendo la proporzione tra le classi originarie tramite suddivisione stratificata, in modo da evitare che lo sbilanciamento tra le classi, in particolare nel caso del dataset Breast Cancer Wisconsin, influisca in modo distorto sulla valutazione. Le operazioni di normalizzazione e di riduzione dimensionale tramite PCA, descritte nella Sezione~\ref{sec:dataset_preprocessing}, sono calcolate esclusivamente sull'insieme di addestramento e successivamente applicate, senza ricalcolo, all'insieme di test, per evitare fenomeni di \textit{data leakage}.
