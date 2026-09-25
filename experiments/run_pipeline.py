@@ -21,6 +21,7 @@ Uso:
     - python run_pipeline.py --aggregate
     - python run_pipeline.py --digits-pca-sensitivity
     - python run_pipeline.py --optimizer-comparison
+    - python run_pipeline.py --vqc-seed-repeats
 
 Questo script si limita alla modalità di simulazione ideale
 (`StatevectorSampler`, si veda `src/execution/backend_manager.py`);
@@ -42,6 +43,7 @@ from config import (
     TEST_SIZE,
     CV_FOLDS,
     VQC_MAXITER,
+    VQC_SEED_REPEATS,
     QSVC_IDEAL_MAX_CIRCUITS_PER_JOB,
 )
 from src.pipeline import (
@@ -252,6 +254,51 @@ def run_optimizer_comparison() -> None:
     print(f"Confronto ottimizzatori (Breast Cancer) salvato in {out_path}")
 
 
+def run_vqc_seed_repeats() -> None:
+    """Ripete l'addestramento del VQC in simulazione ideale con i seed
+    elencati in `VQC_SEED_REPEATS` (uno dei quali è `RANDOM_STATE`, lo
+    stesso seed usato nel resto della pipeline) per ciascuno dei tre
+    dataset, per valutare la variabilità dei risultati rispetto al
+    singolo seed fissato altrove (Tabella `vqc_seed_repeats`, sezione
+    "Variabilità del VQC su seed multipli"): un solo seed garantisce la
+    riproducibilità dell'esperimento ma non consente di valutarne
+    adeguatamente la variabilità."""
+    rows = []
+    for name, cfg in DATASET_CONFIGS.items():
+        X_train, X_test, y_train, y_test, _pca = _load_and_preprocess(name, cfg["n_components"])
+        for seed in VQC_SEED_REPEATS:
+            print(f"[{name}] Addestramento VQC (simulazione ideale, seed={seed})...")
+            row, _cost_history = train_and_evaluate_vqc(
+                cfg["n_components"], cfg["feature_map_reps"], cfg["ansatz_reps"],
+                cfg["entanglement"], X_train, y_train, X_test, y_test,
+                maxiter=VQC_MAXITER, random_state=seed,
+            )
+            rows.append({
+                "dataset": name,
+                "seed": seed,
+                "accuracy": row["accuracy"],
+                "f1_score": row["f1_score"],
+            })
+            print(f"[{name}] seed={seed}: accuracy={row['accuracy']:.3f}, "
+                  f"f1_score={row['f1_score']:.3f}")
+
+    df = pd.DataFrame(rows)
+    TABLES_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = TABLES_DIR / "vqc_seed_repeats.csv"
+    df.to_csv(out_path, index=False)
+    print(f"Ripetizioni VQC su seed multipli salvate in {out_path}")
+
+    summary = (
+        df.groupby("dataset")[["accuracy", "f1_score"]]
+        .agg(["mean", "std"])
+    )
+    summary.columns = ["_".join(col) for col in summary.columns]
+    summary = summary.reset_index()
+    summary_path = TABLES_DIR / "vqc_seed_repeats_summary.csv"
+    summary.to_csv(summary_path, index=False)
+    print(f"Riepilogo (media/deviazione standard) salvato in {summary_path}")
+
+
 def run_aggregate() -> None:
     """Aggrega le tabelle disponibili in `results/tables` (indipendentemente
     da quali dataset siano già stati eseguiti) nelle tabelle e figure
@@ -316,6 +363,11 @@ def main() -> None:
         help="Esegue anche il confronto COBYLA/SPSA sul dataset Breast Cancer.",
     )
     parser.add_argument(
+        "--vqc-seed-repeats", action="store_true",
+        help="Ripete l'addestramento del VQC con i seed multipli elencati "
+             "in config.VQC_SEED_REPEATS, su tutti e tre i dataset.",
+    )
+    parser.add_argument(
         "--aggregate", action="store_true",
         help="Rigenera le tabelle/figure comparative a partire dai risultati "
              "già presenti in results/tables (anche parziali).",
@@ -323,9 +375,10 @@ def main() -> None:
     args = parser.parse_args()
 
     if not (args.datasets or args.digits_pca_sensitivity
-            or args.optimizer_comparison or args.aggregate):
+            or args.optimizer_comparison or args.vqc_seed_repeats or args.aggregate):
         print("Nessuna azione richiesta: specificare --datasets, "
-              "--digits-pca-sensitivity, --optimizer-comparison e/o --aggregate.")
+              "--digits-pca-sensitivity, --optimizer-comparison, "
+              "--vqc-seed-repeats e/o --aggregate.")
         return
 
     for name in args.datasets:
@@ -336,6 +389,9 @@ def main() -> None:
 
     if args.optimizer_comparison:
         run_optimizer_comparison()
+
+    if args.vqc_seed_repeats:
+        run_vqc_seed_repeats()
 
     if args.aggregate:
         run_aggregate()

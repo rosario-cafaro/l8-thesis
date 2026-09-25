@@ -79,3 +79,11 @@ QSVC_REAL_HARDWARE_MAX_CIRCUITS_PER_JOB = 1000
 QSVC_IDEAL_MAX_CIRCUITS_PER_JOB = 50_000
 
 DATASET_NAMES = list(DATASET_CONFIGS.keys())
+
+# Seed multipli per la ripetizione dell'addestramento del VQC in
+# simulazione ideale (sezione "Variabilità del VQC su seed multipli"),
+# a partire da RANDOM_STATE per includere, tra le ripetizioni, lo stesso
+# seed usato nel resto della pipeline: un solo seed garantisce la
+# riproducibilità dell'esperimento ma non consente di valutarne
+# adeguatamente la variabilità.
+VQC_SEED_REPEATS = [RANDOM_STATE + i for i in range(5)]

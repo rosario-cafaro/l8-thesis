@@ -575,6 +575,34 @@ SPSA & 0,693 & 100 & 159.364 & 295,26 \\
 {\footnotesize La colonna "Iterazioni per la convergenza" conta le invocazioni della rispettiva callback e non è direttamente confrontabile tra i due ottimizzatori (si veda il testo); "N. circuiti eseguiti" è la base di confronto del costo computazionale omogenea tra COBYLA e SPSA.}
 \end{table}
 
+\subsection{Variabilità del VQC su seed multipli}
+\label{sec:variabilita_vqc_seed}
+
+Come anticipato nella Sezione~\ref{sec:riproducibilita_esperimenti}, tutti i risultati del VQC riportati nelle sezioni precedenti utilizzano un singolo seed (\texttt{RANDOM\_STATE = 42}), che fissa sia il campionamento a shot finiti sia l'inizializzazione casuale dei parametri variazionali (Sezione~\ref{sec:impl_orchestrazione}). Il VQC è stato quindi riaddestrato in simulazione ideale con 5 seed distinti (\texttt{VQC\_SEED\_REPEATS} in \texttt{config.py}, tra cui lo stesso seed 42 usato nel resto della pipeline) per ciascuno dei tre dataset, per caratterizzare empiricamente la variabilità già segnalata; i risultati sono riassunti in Tabella~\ref{tab:vqc_seed_repeats}.
+
+\begin{table}[htbp]
+\centering
+\caption{Variabilità dell'accuratezza di test del VQC su 5 seed distinti, per dataset (simulazione ideale).}
+\label{tab:vqc_seed_repeats}
+{\renewcommand{\arraystretch}{1.5}
+\footnotesize
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.6cm}ccccc}
+\toprule
+\textbf{Dataset} & \textbf{Media} & \thead{\textbf{Dev.}\\\textbf{standard}} & \textbf{Min} & \textbf{Max} & \thead{\textbf{Valore riportato}\\\textbf{(seed 42)}} \\
+\midrule
+Breast Cancer Wisconsin & 0,668 & 0,070 & 0,553 & 0,728 & 0,728 \\
+Wine & 0,456 & 0,064 & 0,389 & 0,556 & 0,389 \\
+Digits & 0,098 & 0,008 & 0,086 & 0,108 & 0,097 \\
+\bottomrule
+\end{tabular}
+}
+
+\medskip
+{\footnotesize Media, deviazione standard, minimo e massimo calcolati sui 5 seed di \texttt{VQC\_SEED\_REPEATS}; "Valore riportato (seed 42)" è l'accuratezza per il seed 42, la stessa usata in tutte le altre tabelle del capitolo, riportata qui per confronto diretto con la media.}
+\end{table}
+
+La variabilità osservata è tutt'altro che trascurabile su Breast Cancer Wisconsin e Wine, dove la deviazione standard (0,070 e 0,064 rispettivamente) corrisponde a un'escursione tra minimo e massimo di circa 17 punti percentuali in entrambi i casi, mentre è marginale su Digits (deviazione standard 0,008), dove il VQC resta comunque al livello della classificazione casuale indipendentemente dal seed. Nei due casi con variabilità elevata, inoltre, il seed 42 usato per tutti gli altri risultati del capitolo non è rappresentativo del caso tipico, ma si colloca su un estremo della distribuzione osservata: su Breast Cancer Wisconsin corrisponde al valore massimo dei 5 seed (0,728, contro una media di 0,668), mentre su Wine corrisponde al valore minimo (0,389, contro una media di 0,456). Il confronto tra QSVC e VQC discusso nella Sezione~\ref{sec:discussione_risultati} andrebbe quindi letto tenendo conto di questa variabilità: su Breast Cancer Wisconsin il divario riportato (0,746 del QSVC contro 0,728 del VQC) è probabilmente sottostimato rispetto al caso tipico del VQC (media 0,668), mentre su Wine è probabilmente sovrastimato (0,750 contro 0,389, a fronte di una media VQC di 0,456). Su Digits, dove la variabilità è minima, la conclusione che il VQC si attesti al livello della classificazione casuale resta invece robusta al variare del seed.
+
 \section{Discussione dei risultati}
 \label{sec:discussione_risultati}
 
