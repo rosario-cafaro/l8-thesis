@@ -380,11 +380,13 @@ La scelta tra un approccio basato su kernel quantistici (QSVC) ed un approccio v
 \textbf{Paradigma} & Kernel Method (Programmazione Quadratica Convessa). & Rete Neurale Quantistica (Ottimizzazione Non-Convessa Ibrida). \\
 \textbf{Ottimizzazione} & Convessa con minimo globale unico e ben definito. & Non-convessa, soggetta a minimi locali e Barren Plateaus. \\
 \textbf{Fase di Training} & $O(N^2)$ valutazioni del kernel quantistico per $N$ campioni. & Dipendente da (N. iterazioni $\times$ N. campioni $\times$ N. parametri). \\
-\textbf{Sensibilità al Rumore} & Sensibile all'accumulo di rumore nella matrice di Gram. & Inerentemente più tollerante al rumore (\textit{error mitigation} naturale). \\
+\textbf{Sensibilità al Rumore} & Sensibile all'accumulo di rumore nella matrice di Gram. & Tendenzialmente più tollerante al rumore (\textit{error mitigation} naturale). \\
 \textbf{Parametri Modello} & Moltiplicatori di Lagrange $\alpha_i$ associati ai campioni. & Vettore di angoli del PQC $\boldsymbol{\theta}$ di dimensione fissa. \\
 \hline
 \end{tabularx}
 \end{table}
+
+Questa maggiore tolleranza teorica al rumore del VQC non trova conferma nei risultati sperimentali di questo lavoro (Sezione~\ref{sec:effetto_rumore} del Capitolo~\ref{cap:implementazione_sperimentale_risultati}), dove il VQC mostra un degrado di prestazioni superiore al QSVC in presenza di rumore, verosimilmente a causa della maggiore profondità del suo circuito.
 
 \section{Complessità Computazionale, Sfide Metodologiche e Limiti Hardware}
 \label{sec:sfide_e_limiti}
