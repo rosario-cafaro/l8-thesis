@@ -143,9 +143,9 @@ def train_and_evaluate_qsvc(n_qubits, reps, entanglement, X_train, y_train, X_te
 
     Per `sampler_mode` diverso da `"ideal"` è necessario passare anche
     `pass_manager` (si veda `src.execution.backend_manager.get_pass_manager`):
-    a differenza di `StatevectorSampler`, `AerSampler` e l'esecuzione su
-    hardware reale richiedono circuiti già transpilati nel basis gate set
-    del backend.
+    l'hardware reale rifiuta i circuiti non transpilati, mentre `AerSampler`
+    li esegue ma applica il modello di rumore solo alle porte native del
+    backend.
 
     `random_state` fissa il seed del campionamento a shot finiti del
     sampler ideale/con rumore (`StatevectorSampler`/`AerSampler`

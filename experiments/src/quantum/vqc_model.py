@@ -11,7 +11,7 @@ def build_vqc(feature_map, ansatz, sampler, num_classes: int, maxiter: int = 100
               optimizer=None):
     """Costruisce il VQC. Non passando esplicitamente `initial_point`,
     qiskit-machine-learning genera il punto iniziale dei parametri
-    variazionali estraendolo casualmente da `algorithm_globals.random`
+    variazionali estraendolo uniformemente in [0, 1) da `algorithm_globals.random`
     al momento del fit; `random_state`, se fornito, fissa il seed di
     questo generatore globale prima della costruzione, in modo che
     l'inizializzazione (e quindi l'intera traiettoria di ottimizzazione)

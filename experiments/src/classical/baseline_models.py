@@ -27,9 +27,9 @@ def get_classical_models(random_state: int = 42):
             max_iter=1000, random_state=random_state
         ),
         # random_state non viene passato a SVC: scikit-learn lo utilizza
-        # esclusivamente per la stima di probabilita' (`probability=True`,
+        # esclusivamente per la stima di probabilità (`probability=True`,
         # non usata qui), quindi sarebbe un parametro morto che non
-        # influenzerebbe in alcun modo il modello (RBF-SVC e' comunque
+        # influenzerebbe in alcun modo il modello (RBF-SVC è comunque
         # deterministico in questa configurazione).
         "SVM (RBF kernel)": SVC(kernel="rbf"),
         "Random Forest": RandomForestClassifier(

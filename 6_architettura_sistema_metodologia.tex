@@ -258,7 +258,7 @@ La normalizzazione è effettuata con l'approccio Min-Max, che trasforma i valori
 x_{norm} = \frac{x - x_{min}}{x_{max} - x_{min}}
 \end{equation}
 
-Questa normalizzazione è necessaria perché le feature map quantistiche utilizzate impiegano porte di rotazione (RX, RY, RZ) i cui angoli dipendono dai valori delle feature in ingresso; un intervallo limitato e uniforme è pertanto opportuno per evitare rotazioni eccessive che comprometterebbero la distinguibilità degli stati quantistici codificati.
+Questa normalizzazione è necessaria perché le feature map quantistiche utilizzate impiegano porte di rotazione di fase i cui angoli dipendono dai valori delle feature in ingresso; un intervallo limitato e uniforme è pertanto opportuno per evitare rotazioni eccessive che comprometterebbero la distinguibilità degli stati quantistici codificati.
 La scelta di questa strategia rispetto ad altre strategie come la normalizzazione dello z-score è dovuta alle seguenti ragioni:
 
 \begin{itemize}
@@ -371,7 +371,7 @@ La costruzione dei modelli di classificazione quantistica richiede la definizion
 \subsection{Feature map: codifica dei dati classici in stati quantistici}
 La feature map è un circuito quantistico parametrico $U_{\Phi(\mathbf{x})}$ che codifica un vettore di dati classici $\mathbf{x}$, ottenuto dopo normalizzazione e riduzione dimensionale, in uno stato quantistico $\ket{\Phi(\mathbf{x})} = U_{\Phi(\mathbf{x})}\ket{0}^{\otimes n}$, dove $n$ è il numero di qubit, tipicamente pari al numero di componenti principali selezionate per il dataset in esame. L'idea alla base di questo approccio, introdotta da Havlíček et al.\footnote{Havlíček, V., Córcoles, A. D., Temme, K., Harrow, A. W., Kandala, A., Chow, J. M., \& Gambetta, J. M. (2019). Supervised learning with quantum-enhanced feature spaces. \textit{Nature}, 567(7747), 209--212. \url{https://doi.org/10.1038/s41586-019-0980-2}.}, è che lo spazio di Hilbert esponenzialmente grande accessibile tramite un numero contenuto di qubit possa fungere da spazio delle feature arricchito, potenzialmente difficile da riprodurre in modo efficiente con un kernel classico.
 
-Nel presente lavoro vengono impiegate feature map basate su porte di rotazione parametriche (RX, RY, RZ), i cui angoli sono determinati direttamente dai valori normalizzati delle feature, eventualmente combinate con porte di entanglement (ad esempio CNOT) per introdurre correlazioni tra qubit e quindi tra le feature codificate.
+Nel presente lavoro viene impiegata la feature map \texttt{ZZFeatureMap}, composta da porte di Hadamard (H), da rotazioni di fase parametriche (P) i cui angoli sono determinati dai valori delle feature, singolarmente e a coppie, e da porte di entanglement CNOT che introducono correlazioni tra qubit e quindi tra le feature codificate.
 
 \begin{figure}[htbp]
     \centering
@@ -381,7 +381,7 @@ Nel presente lavoro vengono impiegate feature map basate su porte di rotazione p
         \lstick{$\ket{0}$} & \gate{H} & \gate{R_X(x_3)} & \qw      & \targ{}  & \ctrl{1} & \gate{R_Z(x_3)} & \qw \\
         \lstick{$\ket{0}$} & \gate{H} & \gate{R_X(x_4)} & \qw      & \qw      & \targ{}  & \gate{R_Z(x_4)} & \qw
     \end{quantikz}
-    \caption{Esempio di circuito di codifica (feature map) a $n$ qubit.}
+    \caption{Esempio generico di circuito di codifica (feature map) a $n$ qubit, a scopo illustrativo: non corrisponde alla \texttt{ZZFeatureMap} utilizzata in questo lavoro, composta da porte H, rotazioni di fase P e porte CNOT.}
     \label{fig:feature_map_circuito}
 \end{figure}
 

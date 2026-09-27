@@ -186,8 +186,8 @@ def run_optimizer_comparison() -> None:
     `confronto_ottimizzatori`, sezione "Confronto tra ottimizzatori per il VQC").
 
     Il tempo riportato (`total_time_s`) è il solo tempo di fit, misurato
-    con `timed_fit_predict` come per gli altri esperimenti (Sezione
-    7.6.2): è la fase su cui incide la scelta dell'ottimizzatore, a
+    con `timed_fit_predict` come per gli altri esperimenti (sezione
+    "Costo computazionale e tempi di esecuzione"): è la fase su cui incide la scelta dell'ottimizzatore, a
     differenza del tempo di predict che è indipendente da essa.
 
     Per un confronto equo dell'inizializzazione, `algorithm_globals.random_seed`

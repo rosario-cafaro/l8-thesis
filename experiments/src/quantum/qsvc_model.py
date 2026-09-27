@@ -11,31 +11,31 @@ def build_qsvc(feature_map, sampler, pass_manager=None, max_circuits_per_job=Non
     """Costruisce il QSVC a partire dalla feature map e dal sampler.
 
     Il sampler determina il backend di esecuzione dei circuiti di
-    fedelta' (simulatore ideale, simulatore con rumore o hardware
-    reale, si veda src.execution.backend_manager.get_sampler) ed e'
+    fedeltà (simulatore ideale, simulatore con rumore o hardware
+    reale, si veda src.execution.backend_manager.get_sampler) ed è
     esplicitamente collegato al kernel quantistico tramite la
     primitiva ComputeUncompute. Il pass_manager (obbligatorio per le
-    modalita' diverse da quella ideale, si veda
+    modalità diverse da quella ideale, si veda
     src.execution.backend_manager.get_pass_manager) transpila i
     circuiti nel basis gate set del backend prima dell'esecuzione.
 
     Per costruire la matrice di kernel, FidelityQuantumKernel invoca il
     sampler una sola volta, passando in un'unica chiamata un circuito di
-    fedelta' per ciascuna coppia di campioni di
+    fedeltà per ciascuna coppia di campioni di
     addestramento (una lista di PUB, si veda ComputeUncompute._run e
     build_fidelity_circuit). Con max_circuits_per_job non impostato, per
     training set di alcune migliaia di campioni questo genera una
     singola chiamata con centinaia di migliaia di PUB (circa 7,5KB di
     picco di memoria per coppia, misurato empiricamente),
-    che puo' esaurire la memoria disponibile prima ancora di raggiungere
+    che può esaurire la memoria disponibile prima ancora di raggiungere
     l'intero training set, non solo su AerSampler (simulazione con
     rumore), ma anche su StatevectorSampler (simulazione ideale) per
     training set sufficientemente grandi (si veda il dataset Digits,
-    Sezione "Limiti dello studio e minacce alla validita'", Capitolo 4).
-    Impostando max_circuits_per_job la chiamata viene suddivisa in piu'
-    chiamate piu' piccole (una per "chunk" di coppie), riducendo
+    Sezione "Limiti dello studio e minacce alla validità", Capitolo 4).
+    Impostando max_circuits_per_job la chiamata viene suddivisa in più
+    chiamate più piccole (una per "chunk" di coppie), riducendo
     drasticamente il picco di memoria per chiamata a fronte di un
-    modesto overhead aggiuntivo per chunk (tempo totale pressoche'
+    modesto overhead aggiuntivo per chunk (tempo totale pressoché
     invariato, verificato empiricamente).
     """
     fidelity = ComputeUncompute(sampler=sampler, pass_manager=pass_manager)
@@ -48,9 +48,9 @@ def build_qsvc(feature_map, sampler, pass_manager=None, max_circuits_per_job=Non
 
 
 def build_fidelity_circuit(feature_map):
-    """Ricostruisce il circuito di fedelta' eseguito da ComputeUncompute
+    """Ricostruisce il circuito di fedeltà eseguito da ComputeUncompute
     per ciascun elemento della matrice di kernel: la feature map seguita
     dalla sua inversa. Non interviene nell'addestramento; serve solo a
-    misurarne la profondita'."""
+    misurarne la profondità."""
     x_prime = ParameterVector("y", feature_map.num_parameters)
     return feature_map.compose(feature_map.assign_parameters(x_prime).inverse())
