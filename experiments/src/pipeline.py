@@ -285,12 +285,13 @@ def update_degradation_figure(combined_ideal: pd.DataFrame, tables_dir: Path,
     passaggio a hardware reale", Capitolo 4) a partire dai risultati ideali già aggregati
     (`combined_ideal`, con colonne `dataset`, `model`, `accuracy`; si veda
     `aggregate_ideal_results`) e, se presenti in `tables_dir`, dalle tabelle
-    `results_noisy_simulation.csv`/`results_real_hardware.csv` prodotte dal notebook
-    `06_hardware_execution.ipynb`. Le due tabelle di rumore/hardware sono opzionali: se
-    assenti (campagna sperimentale non ancora eseguita in quelle modalità), la figura viene
-    comunque generata con il solo ambiente ideale, così da poter essere aggiornata in modo
-    incrementale. Restituisce `True` se la figura è stata generata (almeno una riga QSVC/VQC
-    disponibile), `False` altrimenti (nessun risultato QSVC/VQC in `combined_ideal`).
+    `ideal_subsample.csv`/`results_noisy_simulation.csv`/`results_real_hardware.csv`
+    prodotte dal notebook `06_hardware_execution.ipynb` e `run_pipeline.py --ideal-on-subsample`.
+    Le tre tabelle sono opzionali: se assenti (campagna sperimentale non ancora eseguita in
+    quelle modalità), la figura viene comunque generata con i soli ambienti disponibili,
+    così da poter essere aggiornata in modo incrementale. Restituisce `True` se la figura è
+    stata generata (almeno una riga QSVC/VQC disponibile), `False` altrimenti (nessun
+    risultato QSVC/VQC in `combined_ideal`).
 
     Riutilizzata identicamente da `run_pipeline.py --aggregate` e dal notebook
     `07_results_comparison.ipynb` (si veda `aggregate_ideal_results`).
@@ -302,6 +303,7 @@ def update_degradation_figure(combined_ideal: pd.DataFrame, tables_dir: Path,
     ]
 
     for environment, filename in (
+        ("ideal_subsample", "ideal_subsample.csv"),
         ("noisy_simulation", "results_noisy_simulation.csv"),
         ("real_hardware", "results_real_hardware.csv"),
     ):

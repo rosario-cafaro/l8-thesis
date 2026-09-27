@@ -41,7 +41,7 @@ Questa organizzazione consente di importare le funzioni implementate nel pacchet
 
 Il file \texttt{config.py} centralizza gli iperparametri sperimentali specifici di ciascun dataset (numero di componenti PCA, ripetizioni della feature map e dell'ansatz, numero massimo di iterazioni dell'ottimizzatore) riportati in Tabella~\ref{tab:configurazione_completa}, oltre ai parametri di sottocampionamento e di suddivisione in chunk usati dalle modalità di esecuzione più realistiche (\texttt{HARDWARE\_TRAIN\_SAMPLE\_SIZE}, 
 \linebreak\texttt{HARDWARE\_TEST\_SAMPLE\_SIZE}, \texttt{QSVC\_MAX\_CIRCUITS\_PER\_JOB}, Sezione~\ref{sec:esecuzione_hardware_reale}) e alla dimensione dei chunk per il QSVC in simulazione ideale 
-\linebreak(\texttt{QSVC\_IDEAL\_MAX\_CIRCUITS\_PER\_JOB}, si veda la Sezione "Limiti dello studio e minacce alla validità"), in modo che notebook e script di automazione facciano riferimento a un'unica fonte di verità. Lo script \texttt{run\_pipeline.py} è un orchestratore da riga di comando: la logica di addestramento, valutazione e produzione delle figure si trova nel modulo \texttt{src/pipeline.py} (Sezione~\ref{sec:impl_orchestrazione}) e nel modulo \texttt{src/evaluation/plots.py}, da cui \texttt{run\_pipeline.py} importa senza duplicarne il contenuto, in modo che la stessa logica sia riutilizzabile dai notebook di sperimentazione. Lo script accetta il flag \texttt{--datasets}, che consente di eseguire la pipeline completa (acquisizione, preprocessing, addestramento dei modelli classici con grid search, addestramento di QSVC e VQC in simulazione ideale, valutazione) su un sottoinsieme di dataset alla volta, anche un singolo dataset per singola invocazione, utile data la durata non trascurabile dell'addestramento del QSVC sui dataset più grandi, e il flag \texttt{--aggregate}, che ricalcola le tabelle e le figure comparative trasversali (Sezione~\ref{sec:analisi_comparativa}) a partire dai risultati per dataset già presenti in \texttt{results/tables}, anche parziali; un risultato equivalente si ottiene, in modo interattivo, dal notebook \texttt{07\_results\_comparison.ipynb} (Sezione~\ref{sec:impl_orchestrazione}). Due ulteriori flag opzionali eseguono analisi supplementari a partire dagli stessi dati preprocessati: \texttt{--digits-pca-sensitivity}, che riproduce l'analisi di sensitività del QSVC al numero di componenti PCA sul dataset Digits (Tabella~\ref{tab:digits_sensitivity_pca}, Sezione~\ref{sec:risultati_digits}), e \texttt{--optimizer-comparison}, che confronta gli ottimizzatori COBYLA e SPSA per il VQC sul dataset Breast Cancer Wisconsin (Tabella~\ref{tab:confronto_ottimizzatori}, Sezione~\ref{sec:confronto_ottimizzatori}). Il codice sorgente completo è disponibile nella cartella \texttt{experiments/} del repository della tesi\footnote{\url{https://github.com/rosario-cafaro/l8-thesis}.}.
+\linebreak(\texttt{QSVC\_IDEAL\_MAX\_CIRCUITS\_PER\_JOB}, si veda la Sezione "Limiti dello studio e minacce alla validità"), in modo che notebook e script di automazione facciano riferimento a un'unica fonte di verità. Lo script \texttt{run\_pipeline.py} è un orchestratore da riga di comando: la logica di addestramento, valutazione e produzione delle figure si trova nel modulo \texttt{src/pipeline.py} (Sezione~\ref{sec:impl_orchestrazione}) e nel modulo \texttt{src/evaluation/plots.py}, da cui \texttt{run\_pipeline.py} importa senza duplicarne il contenuto, in modo che la stessa logica sia riutilizzabile dai notebook di sperimentazione. Lo script accetta il flag \texttt{--datasets}, che consente di eseguire la pipeline completa (acquisizione, preprocessing, addestramento dei modelli classici con grid search, addestramento di QSVC e VQC in simulazione ideale, valutazione) su un sottoinsieme di dataset alla volta, anche un singolo dataset per singola invocazione, utile data la durata non trascurabile dell'addestramento del QSVC sui dataset più grandi, e il flag \texttt{--aggregate}, che ricalcola le tabelle e le figure comparative trasversali (Sezione~\ref{sec:analisi_comparativa}) a partire dai risultati per dataset già presenti in \texttt{results/tables}, anche parziali; un risultato equivalente si ottiene, in modo interattivo, dal notebook \texttt{07\_results\_comparison.ipynb} (Sezione~\ref{sec:impl_orchestrazione}). Quattro ulteriori flag opzionali eseguono analisi supplementari a partire dagli stessi dati preprocessati: \texttt{--digits-pca-sensitivity}, che riproduce l'analisi di sensitività del QSVC al numero di componenti PCA sul dataset Digits (Tabella~\ref{tab:digits_sensitivity_pca}, Sezione~\ref{sec:risultati_digits}); \texttt{--optimizer-comparison}, che confronta gli ottimizzatori COBYLA e SPSA per il VQC sul dataset Breast Cancer Wisconsin (Tabella~\ref{tab:confronto_ottimizzatori}, Sezione~\ref{sec:confronto_ottimizzatori}); \texttt{--vqc-seed-repeats}, che ripete l'addestramento del VQC in simulazione ideale con seed diversi per valutarne la variabilità (Tabella~\ref{tab:vqc_seed_repeats}, Sezione~\ref{sec:variabilita_vqc_seed}); e \texttt{--ideal-on-subsample}, che esegue la simulazione ideale sullo stesso sottoinsieme usato dalle modalità \texttt{noisy\_simulation}/\texttt{real\_hardware}, per isolare l'effetto del rumore da quello della numerosità del campione (Sezione~\ref{sec:effetto_rumore}). Il codice sorgente completo è disponibile nella cartella \texttt{experiments/} del repository della tesi\footnote{\url{https://github.com/rosario-cafaro/l8-thesis}.}.
 
 \subsection{Dockerfile}
 \label{sec:implementazione_dockerfile}
@@ -312,24 +312,29 @@ VQC & 0,728 & 0,732 & 0,661 & 0,666 & 83,72 \\
     \label{fig:confusion_breast_cancer_ideale}
 \end{figure}
 
-\subsection{Simulazione con modello di rumore}
-La Tabella~\ref{tab:risultati_breast_cancer_rumore} riporta le medesime metriche ottenute utilizzando il simulatore Qiskit Aer con modello di rumore calibrato su un backend reale (Sezione~\ref{sec:impl_backend}), permettendo di quantificare il degrado di performance atteso rispetto alla simulazione ideale.
+\subsection{Simulazione ideale sul sottoinsieme e simulazione con modello di rumore}
+Le modalità \texttt{noisy\_simulation}/\texttt{real\_hardware} utilizzano un sottoinsieme sottocampionato di training/test (60/20 campioni, Sezione~\ref{sec:limiti_studio}), mentre la simulazione ideale della Sezione precedente è eseguita sul dataset completo: confrontare direttamente le due non permetterebbe di attribuire l'eventuale differenza di prestazioni esclusivamente al rumore, perché cambiano contemporaneamente anche numerosità e composizione del campione. La Tabella~\ref{tab:risultati_breast_cancer_rumore} affianca perciò, oltre ai risultati con il simulatore Qiskit Aer con modello di rumore calibrato su un backend reale (Sezione~\ref{sec:impl_backend}), anche la simulazione ideale eseguita sul \emph{medesimo} sottoinsieme, così da isolare l'effetto del solo rumore da quello del sottocampionamento (si veda la discussione in Sezione~\ref{sec:effetto_rumore}).
 \newline
 \begin{table}[htbp]
 \centering
-\caption{Risultati sul dataset Breast Cancer Wisconsin, simulazione con modello di rumore.}
+\caption{Risultati sul dataset Breast Cancer Wisconsin: simulazione ideale sul sottoinsieme, e simulazione con rumore.}
 \label{tab:risultati_breast_cancer_rumore}
 {\renewcommand{\arraystretch}{1.5} % aumenta lo spazio verticale tra le righe
 \footnotesize
-\begin{tabular}{>{\raggedright\arraybackslash}p{2.2cm}ccccc}
+\begin{tabular}{>{\raggedright\arraybackslash}p{1.6cm}>{\raggedright\arraybackslash}p{3.4cm}ccc}
 \toprule
-\textbf{Modello} & \textbf{Accuratezza} & \thead{\textbf{Precisione}\\\textbf{(macro)}} & \thead{\textbf{Richiamo}\\\textbf{(macro)}} & \thead{\textbf{F1-score}\\\textbf{(macro)}} & \thead{\textbf{Tempo}\\\textbf{(s)}} \\
+\textbf{Modello} & \textbf{Ambiente} & \textbf{Accuratezza} & \thead{\textbf{F1-score}\\\textbf{(macro)}} & \thead{\textbf{Tempo}\\\textbf{(s)}} \\
 \midrule
-QSVC & 0,600 & 0,316 & 0,462 & 0,375 & 28,38 \\
-VQC & 0,300 & 0,330 & 0,330 & 0,300 & 122,10 \\
+QSVC & Ideale (sottoinsieme) & 0,600 & 0,524 & 4,81 \\
+QSVC & Simulazione con rumore & 0,600 & 0,375 & 28,38 \\
+VQC & Ideale (sottoinsieme) & 0,600 & 0,524 & 11,70 \\
+VQC & Simulazione con rumore & 0,300 & 0,300 & 122,10 \\
 \bottomrule
 \end{tabular}
 }
+
+\medskip
+{\footnotesize "Ideale (sottoinsieme)" è la simulazione ideale (\texttt{StatevectorSampler}) eseguita sullo stesso sottoinsieme stratificato di 60/20 campioni usato dalla riga "Simulazione con rumore", non sul dataset completo di Tabella~\ref{tab:risultati_breast_cancer_ideale} (455/114 campioni).}
 \end{table}
 
 \subsection{Hardware quantistico reale}
@@ -378,12 +383,12 @@ VQC & 0,389 & 0,260 & 0,357 & 0,301 & 30,44 \\
 }
 \end{table}
 
-\subsection{Simulazione con modello di rumore e hardware reale}
-Analogamente a quanto riportato per il dataset Breast Cancer Wisconsin, la Tabella~\ref{tab:risultati_wine_rumore_hw} riassume i risultati ottenuti sul dataset Wine in simulazione con rumore; l'esecuzione su hardware reale non è stata completata, per i motivi documentati nella Sezione~\ref{sec:limiti_studio}.
+\subsection{Simulazione ideale sul sottoinsieme, simulazione con rumore e hardware reale}
+Analogamente a quanto riportato per il dataset Breast Cancer Wisconsin, la Tabella~\ref{tab:risultati_wine_rumore_hw} affianca la simulazione ideale sul medesimo sottoinsieme e la simulazione con rumore ottenute sul dataset Wine; l'esecuzione su hardware reale non è stata completata, per i motivi documentati nella Sezione~\ref{sec:limiti_studio}.
 
 \begin{table}[htbp]
 \centering
-\caption{Risultati sul dataset Wine: simulazione con rumore (\textbf{hardware reale non completato}).}
+\caption{Risultati sul dataset Wine: simulazione ideale sul sottoinsieme, e simulazione con rumore (\textbf{hardware reale non completato}).}
 \label{tab:risultati_wine_rumore_hw}
 {\renewcommand{\arraystretch}{1.5} % aumenta lo spazio verticale tra le righe
 \footnotesize
@@ -391,13 +396,18 @@ Analogamente a quanto riportato per il dataset Breast Cancer Wisconsin, la Tabel
 \toprule
 \textbf{Modello} & \textbf{Ambiente} & \textbf{Accuratezza} & \thead{\textbf{F1-score}\\\textbf{(macro)}} & \thead{\textbf{Tempo}\\\textbf{(s)}} \\
 \midrule
+QSVC & Ideale (sottoinsieme) & 0,800 & 0,813 & 5,62 \\
 QSVC & Simulazione con rumore & 0,650 & 0,571 & 33,36 \\
 QSVC & Hardware reale & \multicolumn{3}{c}{Non completato (Sezione~\ref{sec:limiti_studio})} \\
+VQC & Ideale (sottoinsieme) & 0,400 & 0,305 & 13,26 \\
 VQC & Simulazione con rumore & 0,250 & 0,189 & 134,18 \\
 VQC & Hardware reale & \multicolumn{3}{c}{Non completato (Sezione~\ref{sec:limiti_studio})} \\
 \bottomrule
 \end{tabular}
 }
+
+\medskip
+{\footnotesize "Ideale (sottoinsieme)": si veda la nota alla Tabella~\ref{tab:risultati_breast_cancer_rumore}.}
 \end{table}
 
 \begin{figure}[htbp]
@@ -452,12 +462,12 @@ Data l'elevata dimensionalità originaria del dataset Digits, è stata condotta 
 \end{tabular}
 \end{table}
 
-\subsection{Simulazione con rumore e hardware reale}
-La Tabella~\ref{tab:risultati_digits_rumore_hw} riporta i risultati ottenuti sul dataset Digits in simulazione con rumore; l'esecuzione su hardware reale non è stata completata, per i motivi documentati nella Sezione~\ref{sec:limiti_studio}.
+\subsection{Simulazione ideale sul sottoinsieme, simulazione con rumore e hardware reale}
+La Tabella~\ref{tab:risultati_digits_rumore_hw} affianca allo stesso modo la simulazione ideale sul medesimo sottoinsieme e la simulazione con rumore ottenute sul dataset Digits; l'esecuzione su hardware reale non è stata completata, per i motivi documentati nella Sezione~\ref{sec:limiti_studio}.
 
 \begin{table}[htbp]
 \centering
-\caption{Risultati sul dataset Digits: simulazione con rumore (\textbf{hardware reale non completato}).}
+\caption{Risultati sul dataset Digits: simulazione ideale sul sottoinsieme, e simulazione con rumore (\textbf{hardware reale non completato}).}
 \label{tab:risultati_digits_rumore_hw}
 {\renewcommand{\arraystretch}{1.5} % aumenta lo spazio verticale tra le righe
 \footnotesize
@@ -465,13 +475,18 @@ La Tabella~\ref{tab:risultati_digits_rumore_hw} riporta i risultati ottenuti sul
 \toprule
 \textbf{Modello} & \textbf{Ambiente} & \textbf{Accuratezza} & \thead{\textbf{F1-score}\\\textbf{(macro)}} & \thead{\textbf{Tempo}\\\textbf{(s)}} \\
 \midrule
+QSVC & Ideale (sottoinsieme) & 0,100 & 0,075 & 6,55 \\
 QSVC & Simulazione con rumore & 0,100 & 0,075 & 42,44 \\
 QSVC & Hardware reale & \multicolumn{3}{c}{Non completato (Sezione~\ref{sec:limiti_studio})} \\
+VQC & Ideale (sottoinsieme) & 0,050 & 0,020 & 15,28 \\
 VQC & Simulazione con rumore & 0,100 & 0,033 & 163,59 \\
 VQC & Hardware reale & \multicolumn{3}{c}{Non completato (Sezione~\ref{sec:limiti_studio})} \\
 \bottomrule
 \end{tabular}
 }
+
+\medskip
+{\footnotesize "Ideale (sottoinsieme)": si veda la nota alla Tabella~\ref{tab:risultati_breast_cancer_rumore}.}
 \end{table}
 
 \section{Analisi comparativa trasversale}
@@ -539,12 +554,12 @@ Come atteso sulla base della discussione teorica svolta nella Sezione~\ref{sec:c
 \subsection{Effetto del rumore e del passaggio a hardware reale}
 \label{sec:effetto_rumore}
 
-La Figura~\ref{fig:degrado_performance} illustra il degrado di performance osservato passando dalla simulazione ideale alla simulazione con modello di rumore, per i modelli QSVC e VQC sui tre dataset considerati; il terzo ambiente previsto dalla strategia progressiva di valutazione, l'esecuzione su hardware quantistico reale, non compare in figura poiché non è stato possibile completarla, per i motivi documentati nella Sezione~\ref{sec:limiti_studio}.
+La Figura~\ref{fig:degrado_performance} illustra il degrado di performance osservato tra quattro ambienti progressivamente più realistici, per i modelli QSVC e VQC sui tre dataset considerati: la simulazione ideale sul dataset completo, la simulazione ideale sul medesimo sottoinsieme usato dalla simulazione con rumore, la simulazione con rumore stessa, e infine l'hardware quantistico reale, il cui esito non compare in figura poiché non è stato possibile completarne l'esecuzione, per i motivi documentati nella Sezione~\ref{sec:limiti_studio}. Le prime due colonne permettono di isolare, come discusso in questa sezione, l'effetto del sottocampionamento da quello del rumore vero e proprio.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.85\textwidth]{experiments/results/figures/degrado_performance_ambienti.png}
-    \caption{Degrado delle performance dei modelli quantistici tra simulazione ideale e simulazione con modello di rumore (l'ambiente hardware reale non è presente, si veda il testo).}
+    \caption{Degrado delle performance dei modelli quantistici tra simulazione ideale sul dataset completo, simulazione ideale sul sottoinsieme, e simulazione con rumore (l'ambiente hardware reale non è presente, si veda il testo).}
     \label{fig:degrado_performance}
 \end{figure}
 
@@ -622,9 +637,13 @@ I risultati riportati nella Sezione~\ref{sec:risultati_digits}, in particolare l
 \subsection{Impatto del rumore hardware}
 Il confronto tra simulazione ideale e simulazione con modello di rumore, riportato nella Sezione~\ref{sec:effetto_rumore}, consente di quantificare concretamente l'impatto delle limitazioni dell'era NISQ discusse nella Sezione~\ref{sec:rumore_nisq} del Capitolo~\ref{cap:quantum_machine_learning}, limitatamente a questo confronto, poiché il terzo ambiente previsto, l'esecuzione su hardware quantistico reale, non è stato completato (Sezione~\ref{sec:limiti_studio}).
 
-Il degrado è sistematico su entrambi i modelli e su tutti e tre i dataset (Figura~\ref{fig:degrado_performance}), ma sensibilmente più marcato per il VQC che per il QSVC in termini relativi: su Breast Cancer Wisconsin l'accuratezza del QSVC scende dal 0,746 ideale al 0,600 con rumore (-14,6 punti percentuali), mentre quella del VQC scende dal 0,728 al 0,300 (-42,8 punti); su Wine il QSVC passa da 0,750 a 0,650 (-10,0 punti) contro il VQC da 0,389 a 0,250 (-13,9 punti). Su Digits il confronto è meno informativo poiché il VQC è già al livello della classificazione casuale in simulazione ideale (0,097) e resta sostanzialmente invariato con rumore (0,100); il QSVC, che in simulazione ideale manteneva un margine sopra il caso (0,286), collassa anch'esso al livello casuale con rumore (0,100), un degrado di -18,6 punti.
+Le modalità \texttt{noisy\_simulation}/\texttt{real\_hardware} utilizzano un sottoinsieme sottocampionato di training/test (60/20 campioni, Sezione~\ref{sec:limiti_studio}), mentre la simulazione ideale delle Sezioni~\ref{sec:risultati_breast_cancer}--\ref{sec:risultati_digits} è eseguita sul dataset completo: un confronto diretto tra le due non permetterebbe di attribuire l'eventuale differenza di prestazioni esclusivamente al rumore, perché cambiano contemporaneamente anche numerosità e composizione del campione. Per isolare l'effetto del solo rumore, la simulazione ideale è stata eseguita anche sul medesimo sottoinsieme usato dalla simulazione con rumore (riga "Ideale (sottoinsieme)" nelle Tabelle~\ref{tab:risultati_breast_cancer_rumore}, \ref{tab:risultati_wine_rumore_hw} e \ref{tab:risultati_digits_rumore_hw}), scomponendo così il degrado complessivo in due contributi distinti: quello dovuto al sottocampionamento (differenza tra ideale sul dataset completo e ideale sul sottoinsieme) e quello dovuto al solo rumore (differenza tra ideale sul sottoinsieme e simulazione con rumore, entrambi calcolati sullo stesso campione).
 
-Questa asimmetria tra QSVC e VQC è coerente con la profondità relativa dei circuiti coinvolti nei due approcci (Tabella~\ref{tab:risultati_breast_cancer_ideale} e sezioni corrispondenti per Wine e Digits): il circuito del VQC, che compone la feature map con l'ansatz variazionale, ha una profondità sistematicamente maggiore di quello del solo QSVC (29 contro 19 per Breast Cancer Wisconsin, 32 contro 22 per Wine, 35 contro 25 per Digits) e risulta pertanto esposto a un numero maggiore di operazioni rumorose, con conseguente accumulo di errore più marcato per ogni esecuzione del circuito, indipendentemente dal fatto che il VQC richieda anche, a differenza del QSVC, un'ottimizzazione iterativa dei parametri che il rumore può ulteriormente disturbare.
+Il quadro che ne emerge è più sfumato di quanto un confronto diretto tra dataset completo e sottoinsieme rumoroso suggerirebbe. Per il QSVC, su Breast Cancer Wisconsin e su Digits l'intero calo di accuratezza osservato in precedenza è in realtà dovuto al sottocampionamento e non al rumore: l'accuratezza ideale sul sottoinsieme (0,600 su Breast Cancer Wisconsin, 0,100 su Digits) coincide esattamente con quella ottenuta in presenza di rumore, un effetto del rumore isolato pari a 0,0 punti percentuali in entrambi i casi. Su Wine, al contrario, l'effetto del rumore isolato per il QSVC è reale e più marcato di quanto il confronto diretto suggerisse: l'accuratezza ideale sul sottoinsieme (0,800) è addirittura più alta di quella sul dataset completo (0,750), e il calo dovuto al solo rumore (0,800 $\to$ 0,650, -15,0 punti) supera quello del confronto diretto (0,750 $\to$ 0,650, -10,0 punti).
+
+Per il VQC l'effetto del rumore isolato è invece sostanziale ovunque il confronto sia informativo: su Breast Cancer Wisconsin l'accuratezza ideale sul sottoinsieme (0,600) scende a 0,300 con rumore (-30,0 punti), e su Wine scende da 0,400 a 0,250 (-15,0 punti). Su Digits il confronto resta poco informativo, poiché il VQC è già al livello della classificazione casuale (1/10) sia in condizioni ideali sul sottoinsieme (0,050) sia con rumore (0,100): la differenza tra le due, entro l'errore atteso su un test set di soli 20 campioni (ogni campione pesa 5 punti percentuali sull'accuratezza), non è interpretabile come un effetto reale del rumore.
+
+Isolato in questo modo, l'effetto del rumore risulta quindi nullo o trascurabile per il QSVC su due dei tre dataset (Breast Cancer Wisconsin, Digits) e sostanziale per il VQC ovunque il confronto sia informativo (Breast Cancer Wisconsin, Wine): un'asimmetria tra i due modelli ancora più netta di quella che il confronto diretto, confuso dall'effetto del sottocampionamento, lasciava intendere. Questa asimmetria è coerente con la profondità relativa dei circuiti coinvolti nei due approcci (Tabella~\ref{tab:risultati_breast_cancer_ideale} e sezioni corrispondenti per Wine e Digits): il circuito del VQC, che compone la feature map con l'ansatz variazionale, ha una profondità sistematicamente maggiore di quello del solo QSVC (29 contro 19 per Breast Cancer Wisconsin, 32 contro 22 per Wine, 35 contro 25 per Digits) e risulta pertanto esposto a un numero maggiore di operazioni rumorose, con conseguente accumulo di errore più marcato per ogni esecuzione del circuito, indipendentemente dal fatto che il VQC richieda anche, a differenza del QSVC, un'ottimizzazione iterativa dei parametri che il rumore può ulteriormente disturbare.
 
 \subsection{Limiti dello studio e minacce alla validità}
 \label{sec:limiti_studio}

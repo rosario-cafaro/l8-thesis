@@ -96,10 +96,11 @@ def plot_dataset_accuracy_comparison(rows: list[dict], dataset_name: str, out_pa
 
 _ENVIRONMENT_LABELS = {
     "ideal": "Ideale",
+    "ideal_subsample": "Ideale (sottoinsieme)",
     "noisy_simulation": "Rumore",
     "real_hardware": "Hardware reale",
 }
-_ENVIRONMENT_ORDER = ["ideal", "noisy_simulation", "real_hardware"]
+_ENVIRONMENT_ORDER = ["ideal", "ideal_subsample", "noisy_simulation", "real_hardware"]
 
 
 def plot_noise_hardware_degradation(rows: list[dict], out_path: Path) -> None:
@@ -110,7 +111,7 @@ def plot_noise_hardware_degradation(rows: list[dict], out_path: Path) -> None:
 
     `rows` è una lista di dizionari con chiavi `dataset`, `model`
     (`"QSVC"` o `"VQC"`), `environment` (una tra `ideal`,
-    `noisy_simulation`, `real_hardware`) e `accuracy`. Un ambiente
+    `ideal_subsample`, `noisy_simulation`, `real_hardware`) e `accuracy`. Un ambiente
     mancante per un dato dataset/modello viene semplicemente omesso
     dalla linea corrispondente, così da poter tracciare il grafico
     anche con una campagna sperimentale solo parzialmente completata.

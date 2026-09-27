@@ -22,6 +22,9 @@ Uso:
     - python run_pipeline.py --digits-pca-sensitivity
     - python run_pipeline.py --optimizer-comparison
     - python run_pipeline.py --vqc-seed-repeats
+    - python run_pipeline.py --vqc-seed-repeats wine
+    - python run_pipeline.py --ideal-on-subsample
+    - python run_pipeline.py --ideal-on-subsample digits
 
 Questo script si limita alla modalità di simulazione ideale
 (`StatevectorSampler`, si veda `src/execution/backend_manager.py`);
@@ -45,7 +48,10 @@ from config import (
     VQC_MAXITER,
     VQC_SEED_REPEATS,
     QSVC_IDEAL_MAX_CIRCUITS_PER_JOB,
+    HARDWARE_TRAIN_SAMPLE_SIZE,
+    HARDWARE_TEST_SAMPLE_SIZE,
 )
+from src.data.preprocessing import stratified_subsample
 from src.pipeline import (
     load_and_preprocess_dataset,
     train_classical_models,
@@ -254,18 +260,30 @@ def run_optimizer_comparison() -> None:
     print(f"Confronto ottimizzatori (Breast Cancer) salvato in {out_path}")
 
 
-def run_vqc_seed_repeats() -> None:
+def run_vqc_seed_repeats(datasets: list[str] | None = None) -> None:
     """Ripete l'addestramento del VQC in simulazione ideale con i seed
     elencati in `VQC_SEED_REPEATS` (uno dei quali è `RANDOM_STATE`, lo
-    stesso seed usato nel resto della pipeline) per ciascuno dei tre
-    dataset, per valutare la variabilità dei risultati rispetto al
-    singolo seed fissato altrove (Tabella `vqc_seed_repeats`, sezione
-    "Variabilità del VQC su seed multipli"): un solo seed garantisce la
-    riproducibilità dell'esperimento ma non consente di valutarne
-    adeguatamente la variabilità."""
-    rows = []
-    for name, cfg in DATASET_CONFIGS.items():
+    stesso seed usato nel resto della pipeline), per valutare la
+    variabilità dei risultati rispetto al singolo seed fissato altrove
+    (Tabella `vqc_seed_repeats`, sezione "Variabilità del VQC su seed
+    multipli"): un solo seed garantisce la riproducibilità
+    dell'esperimento ma non consente di valutarne adeguatamente la
+    variabilità.
+
+    `datasets` restringe l'esecuzione a un sottoinsieme di dataset
+    (default: tutti e tre, come per `run_dataset`/`--datasets`), utile per
+    poter rilanciare un solo dataset senza ripetere gli altri. Il
+    risultato di ciascun dataset è salvato subito in un file separato
+    (`vqc_seed_repeats_<dataset>.csv`), così da non perdere il lavoro già
+    fatto se un dataset successivo fallisce; la tabella combinata
+    (`vqc_seed_repeats.csv`) e il relativo riepilogo vengono poi
+    ricostruiti a partire da tutti i file per-dataset disponibili in
+    `results/tables`, non solo da quelli eseguiti in questa chiamata."""
+    TABLES_DIR.mkdir(parents=True, exist_ok=True)
+    for name in (datasets or list(DATASET_CONFIGS.keys())):
+        cfg = DATASET_CONFIGS[name]
         X_train, X_test, y_train, y_test, _pca = _load_and_preprocess(name, cfg["n_components"])
+        rows = []
         for seed in VQC_SEED_REPEATS:
             print(f"[{name}] Addestramento VQC (simulazione ideale, seed={seed})...")
             row, _cost_history = train_and_evaluate_vqc(
@@ -282,21 +300,98 @@ def run_vqc_seed_repeats() -> None:
             print(f"[{name}] seed={seed}: accuracy={row['accuracy']:.3f}, "
                   f"f1_score={row['f1_score']:.3f}")
 
-    df = pd.DataFrame(rows)
-    TABLES_DIR.mkdir(parents=True, exist_ok=True)
-    out_path = TABLES_DIR / "vqc_seed_repeats.csv"
-    df.to_csv(out_path, index=False)
-    print(f"Ripetizioni VQC su seed multipli salvate in {out_path}")
+        out_path = TABLES_DIR / f"vqc_seed_repeats_{name}.csv"
+        pd.DataFrame(rows).to_csv(out_path, index=False)
+        print(f"[{name}] Ripetizioni VQC su seed multipli salvate in {out_path}")
 
-    summary = (
-        df.groupby("dataset")[["accuracy", "f1_score"]]
-        .agg(["mean", "std"])
+    per_dataset_files = sorted(
+        f for f in TABLES_DIR.glob("vqc_seed_repeats_*.csv")
+        if f.stem.replace("vqc_seed_repeats_", "") in DATASET_CONFIGS
     )
+    if not per_dataset_files:
+        return
+    df = pd.concat((pd.read_csv(f) for f in per_dataset_files), ignore_index=True)
+    combined_path = TABLES_DIR / "vqc_seed_repeats.csv"
+    df.to_csv(combined_path, index=False)
+    print(f"Tabella combinata aggiornata in {combined_path} "
+          f"({', '.join(f.stem.replace('vqc_seed_repeats_', '') for f in per_dataset_files)}).")
+
+    summary = df.groupby("dataset")[["accuracy", "f1_score"]].agg(["mean", "std"])
     summary.columns = ["_".join(col) for col in summary.columns]
     summary = summary.reset_index()
     summary_path = TABLES_DIR / "vqc_seed_repeats_summary.csv"
     summary.to_csv(summary_path, index=False)
-    print(f"Riepilogo (media/deviazione standard) salvato in {summary_path}")
+    print(f"Riepilogo (media/deviazione standard) aggiornato in {summary_path}")
+
+
+def run_ideal_on_subsample(datasets: list[str] | None = None) -> None:
+    """Esegue QSVC e VQC in simulazione ideale sullo stesso sottoinsieme
+    stratificato di training/test usato dalle modalità `noisy_simulation`/
+    `real_hardware` (`HARDWARE_TRAIN_SAMPLE_SIZE`/`HARDWARE_TEST_SAMPLE_SIZE`,
+    stesso seed `RANDOM_STATE` usato da `stratified_subsample` in
+    `notebooks/06_hardware_execution.ipynb`, quindi il medesimo sottoinsieme
+    riga per riga), per isolare l'effetto del solo rumore dall'effetto della
+    numerosità/composizione del campione (sezione "Impatto del rumore
+    hardware"): confrontare la simulazione ideale sul dataset completo con
+    la simulazione rumorosa su un sottoinsieme, come fatto finora, non
+    consente di attribuire l'eventuale differenza di prestazioni
+    esclusivamente al rumore.
+
+    `datasets` restringe l'esecuzione a un sottoinsieme di dataset
+    (default: tutti e tre), sullo stesso modello di `run_vqc_seed_repeats`:
+    ogni dataset viene salvato subito in un file separato
+    (`ideal_subsample_<dataset>.csv`), e la tabella combinata
+    (`ideal_subsample.csv`, quella letta da
+    `update_degradation_figure`) viene ricostruita a partire da tutti i
+    file per-dataset disponibili, non solo da quelli eseguiti in questa
+    chiamata."""
+    TABLES_DIR.mkdir(parents=True, exist_ok=True)
+    for name in (datasets or list(DATASET_CONFIGS.keys())):
+        cfg = DATASET_CONFIGS[name]
+        X_train, X_test, y_train, y_test, _pca = _load_and_preprocess(name, cfg["n_components"])
+        X_train_sub, y_train_sub = stratified_subsample(
+            X_train, y_train, HARDWARE_TRAIN_SAMPLE_SIZE, random_state=RANDOM_STATE,
+        )
+        X_test_sub, y_test_sub = stratified_subsample(
+            X_test, y_test, HARDWARE_TEST_SAMPLE_SIZE, random_state=RANDOM_STATE,
+        )
+
+        print(f"[{name}] Addestramento QSVC (simulazione ideale, sottoinsieme "
+              f"{len(y_train_sub)}/{len(y_test_sub)})...")
+        qsvc_result = train_and_evaluate_qsvc(
+            cfg["n_components"], cfg["feature_map_reps"], cfg["entanglement"],
+            X_train_sub, y_train_sub, X_test_sub, y_test_sub,
+            random_state=RANDOM_STATE, max_circuits_per_job=QSVC_IDEAL_MAX_CIRCUITS_PER_JOB,
+        )
+        print(f"[{name}] QSVC: accuracy={qsvc_result['accuracy']:.3f}, "
+              f"fit_time_s={qsvc_result['fit_time_s']:.2f}")
+
+        print(f"[{name}] Addestramento VQC (simulazione ideale, sottoinsieme "
+              f"{len(y_train_sub)}/{len(y_test_sub)})...")
+        vqc_result, _cost_history = train_and_evaluate_vqc(
+            cfg["n_components"], cfg["feature_map_reps"], cfg["ansatz_reps"],
+            cfg["entanglement"], X_train_sub, y_train_sub, X_test_sub, y_test_sub,
+            maxiter=VQC_MAXITER, random_state=RANDOM_STATE,
+        )
+        print(f"[{name}] VQC: accuracy={vqc_result['accuracy']:.3f}, "
+              f"fit_time_s={vqc_result['fit_time_s']:.2f}")
+
+        rows = [{"dataset": name, **qsvc_result}, {"dataset": name, **vqc_result}]
+        out_path = TABLES_DIR / f"ideal_subsample_{name}.csv"
+        pd.DataFrame(rows).drop(columns="confusion_matrix").to_csv(out_path, index=False)
+        print(f"[{name}] Risultati ideale-su-sottoinsieme salvati in {out_path}")
+
+    per_dataset_files = sorted(
+        f for f in TABLES_DIR.glob("ideal_subsample_*.csv")
+        if f.stem.replace("ideal_subsample_", "") in DATASET_CONFIGS
+    )
+    if not per_dataset_files:
+        return
+    df = pd.concat((pd.read_csv(f) for f in per_dataset_files), ignore_index=True)
+    combined_path = TABLES_DIR / "ideal_subsample.csv"
+    df.to_csv(combined_path, index=False)
+    print(f"Tabella combinata aggiornata in {combined_path} "
+          f"({', '.join(f.stem.replace('ideal_subsample_', '') for f in per_dataset_files)}).")
 
 
 def run_aggregate() -> None:
@@ -363,9 +458,23 @@ def main() -> None:
         help="Esegue anche il confronto COBYLA/SPSA sul dataset Breast Cancer.",
     )
     parser.add_argument(
-        "--vqc-seed-repeats", action="store_true",
-        help="Ripete l'addestramento del VQC con i seed multipli elencati "
-             "in config.VQC_SEED_REPEATS, su tutti e tre i dataset.",
+        "--vqc-seed-repeats", nargs="*", choices=list(DATASET_CONFIGS.keys()),
+        default=None, metavar="DATASET",
+        help="Ripete l'addestramento del VQC con i seed multipli elencati in "
+             "config.VQC_SEED_REPEATS. Senza argomenti esegue tutti e tre i "
+             "dataset; altrimenti solo quelli indicati (eseguibili anche uno "
+             "alla volta, in run separate: i file per-dataset già presenti "
+             "non vengono persi).",
+    )
+    parser.add_argument(
+        "--ideal-on-subsample", nargs="*", choices=list(DATASET_CONFIGS.keys()),
+        default=None, metavar="DATASET",
+        help="Esegue la simulazione ideale sullo stesso sottoinsieme usato "
+             "dalle modalità noisy_simulation/real_hardware, per isolare "
+             "l'effetto del rumore da quello della numerosità del campione. "
+             "Senza argomenti esegue tutti e tre i dataset; altrimenti solo "
+             "quelli indicati (eseguibili anche uno alla volta, in run "
+             "separate: i file per-dataset già presenti non vengono persi).",
     )
     parser.add_argument(
         "--aggregate", action="store_true",
@@ -375,10 +484,11 @@ def main() -> None:
     args = parser.parse_args()
 
     if not (args.datasets or args.digits_pca_sensitivity
-            or args.optimizer_comparison or args.vqc_seed_repeats or args.aggregate):
+            or args.optimizer_comparison or args.vqc_seed_repeats is not None
+            or args.ideal_on_subsample is not None or args.aggregate):
         print("Nessuna azione richiesta: specificare --datasets, "
               "--digits-pca-sensitivity, --optimizer-comparison, "
-              "--vqc-seed-repeats e/o --aggregate.")
+              "--vqc-seed-repeats, --ideal-on-subsample e/o --aggregate.")
         return
 
     for name in args.datasets:
@@ -390,8 +500,11 @@ def main() -> None:
     if args.optimizer_comparison:
         run_optimizer_comparison()
 
-    if args.vqc_seed_repeats:
-        run_vqc_seed_repeats()
+    if args.vqc_seed_repeats is not None:
+        run_vqc_seed_repeats(args.vqc_seed_repeats or None)
+
+    if args.ideal_on_subsample is not None:
+        run_ideal_on_subsample(args.ideal_on_subsample or None)
 
     if args.aggregate:
         run_aggregate()
