@@ -1,6 +1,7 @@
 """Modello QSVC basato su kernel quantistico a fedeltà (Sezione "Modello
 QSVC", Capitolo 4)."""
 
+from qiskit.circuit import ParameterVector
 from qiskit_machine_learning.kernels import FidelityQuantumKernel
 from qiskit_machine_learning.algorithms import QSVC
 from qiskit_machine_learning.state_fidelities import ComputeUncompute
@@ -19,12 +20,13 @@ def build_qsvc(feature_map, sampler, pass_manager=None, max_circuits_per_job=Non
     circuiti nel basis gate set del backend prima dell'esecuzione.
 
     Per costruire la matrice di kernel, FidelityQuantumKernel invoca il
-    sampler una sola volta, passando in un'unica chiamata una coppia di
-    circuiti per ciascuna coppia di campioni di addestramento (una
-    lista di PUB, si veda ComputeUncompute._run). Con max_circuits_per_job
-    non impostato, per training set di alcune migliaia di campioni
-    questo genera una singola chiamata con centinaia di migliaia di PUB
-    (circa 8KB di picco di memoria per coppia, misurato empiricamente),
+    sampler una sola volta, passando in un'unica chiamata un circuito di
+    fedelta' per ciascuna coppia di campioni di
+    addestramento (una lista di PUB, si veda ComputeUncompute._run e
+    build_fidelity_circuit). Con max_circuits_per_job non impostato, per
+    training set di alcune migliaia di campioni questo genera una
+    singola chiamata con centinaia di migliaia di PUB (circa 7,5KB di
+    picco di memoria per coppia, misurato empiricamente),
     che puo' esaurire la memoria disponibile prima ancora di raggiungere
     l'intero training set, non solo su AerSampler (simulazione con
     rumore), ma anche su StatevectorSampler (simulazione ideale) per
@@ -43,3 +45,12 @@ def build_qsvc(feature_map, sampler, pass_manager=None, max_circuits_per_job=Non
     )
     qsvc = QSVC(quantum_kernel=quantum_kernel)
     return qsvc
+
+
+def build_fidelity_circuit(feature_map):
+    """Ricostruisce il circuito di fedelta' eseguito da ComputeUncompute
+    per ciascun elemento della matrice di kernel: la feature map seguita
+    dalla sua inversa. Non interviene nell'addestramento; serve solo a
+    misurarne la profondita'."""
+    x_prime = ParameterVector("y", feature_map.num_parameters)
+    return feature_map.compose(feature_map.assign_parameters(x_prime).inverse())

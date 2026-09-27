@@ -104,7 +104,7 @@ _ENVIRONMENT_ORDER = ["ideal", "ideal_subsample", "noisy_simulation", "real_hard
 
 
 def plot_noise_hardware_degradation(rows: list[dict], out_path: Path) -> None:
-    """Degrado dell'accuratezza di QSVC e VQC al crescere del realismo
+    """Variazione dell'accuratezza di QSVC e VQC al crescere del realismo
     dell'ambiente di esecuzione (ideale, rumore, hardware reale), una
     linea per dataset (Figura `degrado_performance`, sezione "Effetto del
     rumore e del passaggio a hardware reale").
@@ -136,8 +136,8 @@ def plot_noise_hardware_degradation(rows: list[dict], out_path: Path) -> None:
         ax.set_ylabel("Accuratezza di test")
         ax.set_title(model)
         ax.set_ylim(0, 1.05)
-        ax.legend(title="Dataset")
-    fig.suptitle("Degrado delle performance al crescere del realismo dell'ambiente di esecuzione")
+        ax.legend(title="Dataset", loc="upper right")
+    fig.suptitle("Variazione delle performance al crescere del realismo dell'ambiente di esecuzione")
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)

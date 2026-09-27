@@ -25,6 +25,7 @@ Uso:
     - python run_pipeline.py --vqc-seed-repeats wine
     - python run_pipeline.py --ideal-on-subsample
     - python run_pipeline.py --ideal-on-subsample digits
+    - python run_pipeline.py --kernel-diagnostics
 
 Questo script si limita alla modalità di simulazione ideale
 (`StatevectorSampler`, si veda `src/execution/backend_manager.py`);
@@ -38,6 +39,8 @@ import argparse
 from pathlib import Path
 
 import pandas as pd
+from qiskit_machine_learning.optimizers import SPSA
+from sklearn.preprocessing import MinMaxScaler
 
 from config import (
     DATASET_CONFIGS,
@@ -52,6 +55,11 @@ from config import (
     HARDWARE_TEST_SAMPLE_SIZE,
 )
 from src.data.preprocessing import stratified_subsample
+from src.quantum.feature_maps import build_feature_map
+from src.quantum.ansatz import build_ansatz
+from src.quantum.qsvc_model import build_fidelity_circuit
+from src.quantum.vqc_model import build_vqc
+from src.execution.backend_manager import get_sampler, CountingSampler
 from src.pipeline import (
     load_and_preprocess_dataset,
     train_classical_models,
@@ -59,6 +67,9 @@ from src.pipeline import (
     train_and_evaluate_vqc,
     aggregate_ideal_results,
     update_degradation_figure,
+)
+from src.evaluation.metrics import (
+    timed_fit_predict, evaluate_model, circuit_stats, kernel_offdiag_stats,
 )
 from src.evaluation.plots import (
     plot_confusion_matrix,
@@ -194,16 +205,6 @@ def run_optimizer_comparison() -> None:
     questo confronto: `n_circuits`, il numero di circuiti quantistici
     effettivamente eseguiti, è la base di confronto del budget realmente
     omogenea tra i due ottimizzatori."""
-    from qiskit_machine_learning.algorithms import VQC
-    from qiskit_machine_learning.optimizers import SPSA
-    from qiskit_machine_learning.utils import algorithm_globals
-
-    from src.quantum.feature_maps import build_feature_map
-    from src.quantum.ansatz import build_ansatz
-    from src.quantum.vqc_model import build_vqc
-    from src.execution.backend_manager import get_sampler, CountingSampler
-    from src.evaluation.metrics import timed_fit_predict, evaluate_model
-
     name = "breast_cancer"
     cfg = DATASET_CONFIGS[name]
     X_train, X_test, y_train, y_test, _pca = _load_and_preprocess(name, cfg["n_components"])
@@ -213,9 +214,10 @@ def run_optimizer_comparison() -> None:
     ansatz = build_ansatz(cfg["n_components"], reps=cfg["ansatz_reps"],
                            entanglement=cfg["entanglement"])
 
+    num_classes = len(set(y_train.tolist()))
     rows = []
     for opt_name, optimizer in (
-        ("COBYLA", None),  # costruito internamente da build_vqc
+        ("COBYLA", None),  # default di build_vqc: COBYLA(maxiter=VQC_MAXITER)
         ("SPSA", SPSA(maxiter=VQC_MAXITER)),
     ):
         sampler = CountingSampler(get_sampler("ideal", seed=RANDOM_STATE))
@@ -226,9 +228,6 @@ def run_optimizer_comparison() -> None:
             # con la convenzione generica a due argomenti (pesi, valore).
             def callback(_weights, cost):
                 cost_history.append(float(cost))
-
-            vqc = build_vqc(feature_map, ansatz, sampler, maxiter=VQC_MAXITER,
-                             callback=callback, random_state=RANDOM_STATE)
         else:
             # SPSA ha un proprio attributo `callback` nativo: VQC lo
             # rileva (`hasattr(optimizer, "callback")`) e vi assegna
@@ -238,9 +237,11 @@ def run_optimizer_comparison() -> None:
             def callback(_nfev, _params, cost, _update_norm, _accepted):
                 cost_history.append(float(cost))
 
-            algorithm_globals.random_seed = RANDOM_STATE
-            vqc = VQC(sampler=sampler, feature_map=feature_map, ansatz=ansatz,
-                      optimizer=optimizer, callback=callback)
+        # build_vqc fissa algorithm_globals.random_seed prima di ciascuna
+        # costruzione: stesso punto iniziale per entrambi gli ottimizzatori.
+        vqc = build_vqc(feature_map, ansatz, sampler, num_classes=num_classes,
+                         maxiter=VQC_MAXITER, callback=callback,
+                         random_state=RANDOM_STATE, optimizer=optimizer)
 
         y_pred, fit_time, _predict_time = timed_fit_predict(vqc, X_train, y_train, X_test)
         test_accuracy = evaluate_model(y_test, y_pred)["accuracy"]
@@ -378,7 +379,7 @@ def run_ideal_on_subsample(datasets: list[str] | None = None) -> None:
 
         rows = [{"dataset": name, **qsvc_result}, {"dataset": name, **vqc_result}]
         out_path = TABLES_DIR / f"ideal_subsample_{name}.csv"
-        pd.DataFrame(rows).drop(columns="confusion_matrix").to_csv(out_path, index=False)
+        pd.DataFrame(rows).to_csv(out_path, index=False)
         print(f"[{name}] Risultati ideale-su-sottoinsieme salvati in {out_path}")
 
     per_dataset_files = sorted(
@@ -392,6 +393,52 @@ def run_ideal_on_subsample(datasets: list[str] | None = None) -> None:
     df.to_csv(combined_path, index=False)
     print(f"Tabella combinata aggiornata in {combined_path} "
           f"({', '.join(f.stem.replace('ideal_subsample_', '') for f in per_dataset_files)}).")
+
+
+def run_kernel_diagnostics() -> None:
+    """Diagnostica dei circuiti e del kernel quantistico in simulazione
+    ideale, per ciascun dataset (sezioni "Costo computazionale e tempi di
+    esecuzione" e "Limiti dello studio e minacce alla validità"):
+
+    - profondità logica della feature map, del circuito di fedeltà
+      U(x)U^dagger(x') effettivamente eseguito dal QSVC per ogni elemento
+      del kernel e del circuito feature map + ansatz del VQC;
+    - statistiche degli elementi fuori diagonale della matrice di kernel
+      esatta sull'intero training set, confrontate con il valore 1/2^n
+      atteso per stati casuali (si veda `kernel_offdiag_stats`), anche
+      con le componenti PCA riscalate in [0, 1] (colonne `rescaled01_*`).
+
+    Non usa il campionamento a shot finiti né componenti stocastiche: il
+    risultato è deterministico e richiede pochi secondi."""
+    rows = []
+    for name, cfg in DATASET_CONFIGS.items():
+        X_train, _X_test, _y_train, _y_test, _pca = _load_and_preprocess(name, cfg["n_components"])
+        feature_map = build_feature_map(cfg["n_components"], reps=cfg["feature_map_reps"],
+                                         entanglement=cfg["entanglement"])
+        ansatz = build_ansatz(cfg["n_components"], reps=cfg["ansatz_reps"],
+                               entanglement=cfg["entanglement"])
+        rows.append({
+            "dataset": name,
+            "n_qubits": cfg["n_components"],
+            "feature_map_depth": circuit_stats(feature_map)["depth"],
+            "fidelity_circuit_depth": circuit_stats(build_fidelity_circuit(feature_map))["depth"],
+            "vqc_circuit_depth": circuit_stats(feature_map.compose(ansatz))["depth"],
+            **kernel_offdiag_stats(feature_map, X_train),
+            # Stesse statistiche con le componenti PCA riscalate in [0, 1]
+            # (fit sul solo train): confronto per la scala delle feature
+            # codificate, non usato dal resto della pipeline.
+            **{f"rescaled01_{k}": v for k, v in kernel_offdiag_stats(
+                feature_map, MinMaxScaler().fit_transform(X_train)).items()
+               if k != "haar_reference"},
+        })
+        print(f"[{name}] diagnostica completata")
+
+    df = pd.DataFrame(rows)
+    TABLES_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = TABLES_DIR / "kernel_diagnostics.csv"
+    df.to_csv(out_path, index=False)
+    print(df.to_string(index=False))
+    print(f"Diagnostica del kernel salvata in {out_path}")
 
 
 def run_aggregate() -> None:
@@ -477,6 +524,11 @@ def main() -> None:
              "separate: i file per-dataset già presenti non vengono persi).",
     )
     parser.add_argument(
+        "--kernel-diagnostics", action="store_true",
+        help="Calcola profondità dei circuiti e statistiche del kernel "
+             "quantistico esatto (pochi secondi, deterministico).",
+    )
+    parser.add_argument(
         "--aggregate", action="store_true",
         help="Rigenera le tabelle/figure comparative a partire dai risultati "
              "già presenti in results/tables (anche parziali).",
@@ -485,10 +537,12 @@ def main() -> None:
 
     if not (args.datasets or args.digits_pca_sensitivity
             or args.optimizer_comparison or args.vqc_seed_repeats is not None
-            or args.ideal_on_subsample is not None or args.aggregate):
+            or args.ideal_on_subsample is not None or args.kernel_diagnostics
+            or args.aggregate):
         print("Nessuna azione richiesta: specificare --datasets, "
               "--digits-pca-sensitivity, --optimizer-comparison, "
-              "--vqc-seed-repeats, --ideal-on-subsample e/o --aggregate.")
+              "--vqc-seed-repeats, --ideal-on-subsample, --kernel-diagnostics "
+              "e/o --aggregate.")
         return
 
     for name in args.datasets:
@@ -505,6 +559,9 @@ def main() -> None:
 
     if args.ideal_on_subsample is not None:
         run_ideal_on_subsample(args.ideal_on_subsample or None)
+
+    if args.kernel_diagnostics:
+        run_kernel_diagnostics()
 
     if args.aggregate:
         run_aggregate()

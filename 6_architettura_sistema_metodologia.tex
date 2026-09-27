@@ -268,7 +268,7 @@ La scelta di questa strategia rispetto ad altre strategie come la normalizzazion
     \item Coerenza nella rappresentazione dei dati indipendentemente dalla scala delle singole caratteristiche.
 \end{itemize}
 
-È opportuno segnalare che la normalizzazione Min-Max, calcolata sui valori minimo e massimo osservati, deve essere derivata esclusivamente dal set di addestramento e successivamente applicata al set di test, per evitare fenomeni di \textit{data leakage} che comprometterebbero la validità della valutazione (si veda la Sezione~\ref{sec:protocollo_sperimentale}).
+È opportuno segnalare che la normalizzazione Min-Max, calcolata sui valori minimo e massimo osservati, deve essere derivata esclusivamente dal set di addestramento e successivamente applicata al set di test, per evitare fenomeni di \textit{data leakage} che comprometterebbero la validità della valutazione (si veda la Sezione~\ref{sec:protocollo_sperimentale}). Poiché la riduzione dimensionale tramite PCA (Sezione~\ref{sec:pca}) è applicata dopo la normalizzazione, le feature effettivamente codificate nei circuiti non sono più vincolate all'intervallo $[0, 1]$, ma sono centrate in zero e hanno scale diverse da una componente all'altra; le conseguenze di questa scelta sulla capacità discriminante del kernel quantistico, misurate sperimentalmente, sono discusse tra i limiti dello studio (Sezione~\ref{sec:limiti_studio}).
 
 \subsection{Riduzione della dimensionalità tramite PCA}
 \label{sec:pca}

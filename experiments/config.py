@@ -9,8 +9,9 @@ RANDOM_STATE = 42
 TEST_SIZE = 0.2
 CV_FOLDS = 5
 
-# Numero massimo di iterazioni dell'ottimizzatore COBYLA per il VQC
-# (sezione "Configurazione sperimentale").
+# Numero massimo di valutazioni della funzione di costo dell'ottimizzatore
+# COBYLA per il VQC, comune ai tre dataset (sezione "Configurazione
+# sperimentale").
 VQC_MAXITER = 100
 
 DATASET_CONFIGS = {

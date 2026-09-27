@@ -23,6 +23,7 @@ import json
 import time
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from sklearn.base import clone
 from sklearn.model_selection import GridSearchCV, StratifiedKFold
@@ -32,10 +33,12 @@ from src.data.preprocessing import preprocess
 from src.classical.baseline_models import get_classical_models, GRID_SEARCH_PARAMS
 from src.quantum.feature_maps import build_feature_map
 from src.quantum.ansatz import build_ansatz
-from src.quantum.qsvc_model import build_qsvc
+from src.quantum.qsvc_model import build_qsvc, build_fidelity_circuit
 from src.quantum.vqc_model import build_vqc
 from src.execution.backend_manager import get_sampler, CountingSampler
-from src.evaluation.metrics import evaluate_model, timed_fit_predict, circuit_stats
+from src.evaluation.metrics import (
+    evaluate_model, timed_fit_predict, circuit_stats, transpiled_circuit_stats,
+)
 from src.evaluation.plots import plot_accuracy_comparison, plot_noise_hardware_degradation
 
 
@@ -152,11 +155,16 @@ def train_and_evaluate_qsvc(n_qubits, reps, entanglement, X_train, y_train, X_te
 
     `max_circuits_per_job`, inoltrato a `build_qsvc`, suddivide il
     calcolo della matrice di kernel in più chiamate più piccole invece
-    di una singola chiamata con una coppia di circuiti per ciascuna
+    di una singola chiamata con un circuito di fedeltà per ciascuna
     coppia di campioni di addestramento: necessario per `sampler_mode`
     diverso da `"ideal"`, dove una chiamata unica con training set di
     alcune centinaia di campioni può esaurire la memoria disponibile
     (si veda la sezione "Limiti dello studio e minacce alla validità").
+
+    `circuit_depth` è la profondità logica della sola feature map U(x); con
+    `pass_manager` fornito, `transpiled_depth` e `n_2q_gates` descrivono il
+    circuito di fedeltà effettivamente eseguito, dopo la
+    transpilazione sulle porte native del dispositivo.
     """
     feature_map = build_feature_map(n_qubits, reps=reps, entanglement=entanglement)
     sampler = CountingSampler(
@@ -172,6 +180,8 @@ def train_and_evaluate_qsvc(n_qubits, reps, entanglement, X_train, y_train, X_te
 
     metrics = evaluate_model(y_test, y_pred)
     stats = circuit_stats(feature_map)
+    if pass_manager is not None:
+        stats.update(transpiled_circuit_stats(build_fidelity_circuit(feature_map), pass_manager))
     return {
         "model": "QSVC",
         "fit_time_s": fit_time,
@@ -180,8 +190,9 @@ def train_and_evaluate_qsvc(n_qubits, reps, entanglement, X_train, y_train, X_te
         "train_accuracy": train_accuracy,
         **{k: v for k, v in metrics.items() if k != "confusion_matrix"},
         "confusion_matrix": metrics["confusion_matrix"].tolist(),
-        "circuit_depth": stats["depth"],
+        "circuit_depth": stats.pop("depth"),
         "n_qubits": n_qubits,
+        **stats,
     }
 
 
@@ -209,6 +220,13 @@ def train_and_evaluate_vqc(n_qubits, fm_reps, ansatz_reps, entanglement,
     il seed di `algorithm_globals.random` usato per generare il punto
     iniziale casuale dei parametri variazionali: senza di esso
     l'addestramento del VQC non è riproducibile tra esecuzioni diverse.
+
+    Il numero di classi passato a `build_vqc` è ricavato da `y_train`
+    (si veda `build_vqc` per il motivo per cui va passato esplicitamente).
+
+    Con `pass_manager` fornito, la riga include anche `transpiled_depth` e
+    `n_2q_gates` del circuito feature map + ansatz transpilato (si veda
+    `train_and_evaluate_qsvc`).
     """
     feature_map = build_feature_map(n_qubits, reps=fm_reps, entanglement=entanglement)
     ansatz = build_ansatz(n_qubits, reps=ansatz_reps, entanglement=entanglement)
@@ -222,8 +240,9 @@ def train_and_evaluate_vqc(n_qubits, fm_reps, ansatz_reps, entanglement,
     def callback(_weights, cost):
         cost_history.append(float(cost))
 
-    vqc = build_vqc(feature_map, ansatz, sampler, maxiter=maxiter, callback=callback,
-                     pass_manager=pass_manager, random_state=random_state)
+    vqc = build_vqc(feature_map, ansatz, sampler, num_classes=len(np.unique(y_train)),
+                     maxiter=maxiter, callback=callback, pass_manager=pass_manager,
+                     random_state=random_state)
 
     y_pred, fit_time, predict_time = timed_fit_predict(vqc, X_train, y_train, X_test)
     n_circuits = sampler.n_circuits
@@ -232,6 +251,8 @@ def train_and_evaluate_vqc(n_qubits, fm_reps, ansatz_reps, entanglement,
     metrics = evaluate_model(y_test, y_pred)
     full_circuit = feature_map.compose(ansatz)
     stats = circuit_stats(full_circuit)
+    if pass_manager is not None:
+        stats.update(transpiled_circuit_stats(full_circuit, pass_manager))
     row = {
         "model": "VQC",
         "fit_time_s": fit_time,
@@ -240,8 +261,9 @@ def train_and_evaluate_vqc(n_qubits, fm_reps, ansatz_reps, entanglement,
         "train_accuracy": train_accuracy,
         **{k: v for k, v in metrics.items() if k != "confusion_matrix"},
         "confusion_matrix": metrics["confusion_matrix"].tolist(),
-        "circuit_depth": stats["depth"],
+        "circuit_depth": stats.pop("depth"),
         "n_qubits": n_qubits,
+        **stats,
     }
     return row, cost_history
 
