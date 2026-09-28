@@ -204,7 +204,7 @@ Annullando le derivate parziali rispetto alle variabili primali ($\mathbf{w}, b,
 
 Nel caso di pattern non linearmente separabili nello spazio originale $\mathbb{R}^d$, si applica una mappatura non lineare $\Phi: \mathcal{X} \to \mathcal{F}$ in uno spazio di Hilbert ad alta (o infinita) dimensione $\mathcal{F}$. Grazie al \textbf{Kernel Trick}\footnote{Boser, B. E., Guyon, I. M., \& Vapnik, V. N. (1992). A training algorithm for optimal margin classifiers. \textit{Proceedings of the fifth annual workshop on Computational learning theory}, 144-152.}, non è necessario calcolare esplicitamente la trasformazione $\Phi(\mathbf{x})$, ma è sufficiente valutare la funzione kernel $K(\mathbf{x}_i, \mathbf{x}_j) = \langle \Phi(\mathbf{x}_i), \Phi(\mathbf{x}_j) \rangle_{\mathcal{F}}$.
 
-Tra le funzioni Kernel classiche più ampie figura il Kernel Gaussiano a base Radiale (RBF):
+Tra le funzioni Kernel classiche più diffuse figura il Kernel Gaussiano a base Radiale (RBF):
 \begin{equation}
 K_{\text{RBF}}(\mathbf{x}_i, \mathbf{x}_j) = \exp\left( -\gamma \|\mathbf{x}_i - \mathbf{x}_j\|^2 \right), \quad \gamma > 0.
 \end{equation}
@@ -219,7 +219,7 @@ K_{\text{RBF}}(\mathbf{x}_i, \mathbf{x}_j) = \exp\left( -\gamma \|\mathbf{x}_i -
 \end{figure}
 
 \subsection{Random Forest}
-Il Random Forest\footnote{Breiman, L. (2001). Random Forests. \textit{Machine Learning}, 45(1), 5-32.} rappresenta dei più importanti esempi di algoritmi di apprendimento d'insieme (ensemble learning). Questo approccio è stato introdotto da Leo Breiman e Adele Cutler nel 2001, basandosi su principi già consolidati di \textit{Bootstrap Aggregating} (noto comunemente come \textit{bagging}).
+Il Random Forest\footnote{Breiman, L. (2001). Random Forests. \textit{Machine Learning}, 45(1), 5-32.} rappresenta uno dei più importanti esempi di algoritmi di apprendimento d'insieme (ensemble learning). Questo approccio è stato introdotto da Leo Breiman e Adele Cutler nel 2001, basandosi su principi già consolidati di \textit{Bootstrap Aggregating} (noto comunemente come \textit{bagging}).
 
 L'approccio dell'ensemble si basa sull'idea che combinando modelli diversi si possa ottenere un miglioramento della capacità predittiva rispetto a quella di un singolo modello. L'unione di \textit{bagging} e alberi decisionali ha dimostrato una notevole robustezza e un'elevata capacità di generalizzazione, rendendo il Random Forest uno strumento standard ampiamente adottato in ambito ML.
 
@@ -295,6 +295,6 @@ Oltre ad Accuracy, Precision, Recall e F1-Score, è essenziale considerare:
 
 \section{Limiti Computazionali dei Modelli Classici}
 
-I modelli classici presentati in questo capitolo, per quanto efficaci sui dataset di dimensioni contenute utilizzati in questo lavoro, presentano vincoli computazionali intrinseci che ne limitano la scalabilità: la SVM a kernel non lineare (Sezione~\ref{sec:svm_classica}), ad esempio, richiede fino a $O(n^3 \cdot d)$ operazioni in fase di addestramento al crescere del numero di campioni $n$. Questi vincoli si accentuano ulteriormente quando si esplorano spazi di feature ad alto ordine per catturare correlazioni non lineari complesse (ad esempio tramite kernel polinomiali di grado elevato): il calcolo esplicito di tali feature comporta un'esplosione combinatoria che rende il problema rapidamente intrattabile, un fenomeno noto come \textit{Maledizione della Dimensionalità}\footnote{Bellman, R., \& Bellman, R. E. 1961, \textit{Adaptive Control Processes: A Guided Tour}. Princeton University Press.}.
+I modelli classici presentati in questo capitolo, per quanto efficaci sui dataset di dimensioni contenute utilizzati in questo lavoro, presentano vincoli computazionali intrinseci che ne limitano la scalabilità: la SVM a kernel non lineare (Sezione~\ref{sec:svm_classica}), ad esempio, richiede fino a $O(n^3 \cdot d)$ operazioni in fase di addestramento al crescere del numero di campioni $n$. Questi vincoli si accentuano ulteriormente quando si esplorano spazi di feature ad alto ordine per catturare correlazioni non lineari complesse (ad esempio tramite kernel polinomiali di grado elevato): il calcolo esplicito di tali feature comporta un'esplosione combinatoria che rende il problema rapidamente intrattabile, un fenomeno noto come \textit{Maledizione della Dimensionalità}\footnote{Bellman, R. E. (1961), \textit{Adaptive Control Processes: A Guided Tour}. Princeton University Press.}.
 
 È proprio questa limitazione a motivare l'interesse per il \textit{Quantum Feature Mapping}, discusso nel Capitolo~\ref{cap:quantum_machine_learning} (Sezione~\ref{sec:data_encoding}): mappando i dati in uno spazio di Hilbert di dimensione $2^N$ tramite $N$ qubit, i modelli quantistici accedono a spazi di feature ad altissima dimensionalità senza doverli costruire esplicitamente, aprendo potenziali vie per identificare regolarità nei dati che sfuggono ai modelli classici basati su distanze euclidee standard.

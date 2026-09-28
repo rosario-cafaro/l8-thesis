@@ -11,7 +11,7 @@ Il sistema è stato progettato secondo un'architettura modulare, in cui ciascuna
 L'architettura complessiva può essere suddivisa nei seguenti moduli logici:
 
 \begin{enumerate}
-    \item \textbf{Modulo di acquisizione dei dati}: si occupa del caricamento dei dataset dalle librerie standard (Scikit-learn) e dalla loro validazione preliminare (verifica di valori mancanti, tipi di dato, bilanciamento delle classi).
+    \item \textbf{Modulo di acquisizione dei dati}: si occupa del caricamento dei dataset dalle librerie standard (Scikit-learn) e della loro validazione preliminare (verifica di valori mancanti, tipi di dato, bilanciamento delle classi).
     \item \textbf{Modulo di preprocessing}: applica la normalizzazione Min-Max e, dove necessario, la riduzione della dimensionalità tramite Analisi delle Componenti Principali (PCA), producendo in uscita un insieme di feature compatibile sia con i classificatori classici sia con il numero di qubit disponibili per i circuiti quantistici.
     \item \textbf{Modulo di codifica quantistica}: Converte i vettori dei dati pre-elaborati in circuiti quantistici parametrizzati (mappa delle caratteristiche), in accordo con i due metodi indicati nella Sezione~\ref{sec:circuiti_quantistici}.
     \item \textbf{Modulo di addestramento}: Prevede sia algoritmi classici forniti da Scikit-learn per avere un punto di riferimento, che modelli quantistici come QSVC e VQC costruiti tramite qiskit-machine-learning.
@@ -220,7 +220,7 @@ Sono stati selezionati tre dataset riconosciuti in letteratura per la loro utili
 \subsection{Dataset selezionati}
 
 \subsubsection{Breast Cancer Wisconsin}
-Il dataset \textit{Breast Cancer Wisconsin (Diagnostic)}\footnote{Wolberg, W., Street, W., \& Mangasarian, O. (1995). \textit{Breast Cancer Wisconsin (Diagnostic)} [Dataset]. UCI Machine Learning Repository. \url{https://archive.ics.uci.edu/dataset/17/breast-cancer-wisconsin-diagnostic}.} è uno dei dataset più utilizzati in letteratura per problemi di classificazione binaria in ambito medico, e rappresenta un insieme di 569 campioni con 30 feature. Ogni feature descrive una caratteristica geometrica o di texture dei nuclei cellulari, ottenute dall'analisi digitale di un'immagine di agoaspirato di massa mammaria (\textit{Fine Needle Aspirate}, FNA). Il dataset è ritenuto adatto per la sperimentazione con il machine learning quantistico per i seguenti motivi:
+Il dataset \textit{Breast Cancer Wisconsin (Diagnostic)}\footnote{Wolberg, W., Street, W., \& Mangasarian, O. (1995). \textit{Breast Cancer Wisconsin (Diagnostic)} [Dataset]. UCI Machine Learning Repository. \url{https://archive.ics.uci.edu/dataset/17/breast-cancer-wisconsin-diagnostic}.} è uno dei dataset più utilizzati in letteratura per problemi di classificazione binaria in ambito medico, e rappresenta un insieme di 569 campioni con 30 feature. Ogni feature descrive una caratteristica geometrica o di texture dei nuclei cellulari, ottenuta dall'analisi digitale di un'immagine di agoaspirato di massa mammaria (\textit{Fine Needle Aspirate}, FNA). Il dataset è ritenuto adatto per la sperimentazione con il machine learning quantistico per i seguenti motivi:
 \begin{itemize}
     \item le feature sono tutte numeriche e continue, adatte alla codifica su porte di rotazione quantistiche;
     \item il problema è binario (tumore benigno o maligno), semplice da interpretare e ben studiato in letteratura come benchmark;
